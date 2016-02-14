@@ -9,9 +9,9 @@ else
   command = "bash"
 end
 
-container = %x{docker run --add-host=puppet:172.17.0.1 --expose=80 -Pi agent sh -c "sleep 300}.chomp
+container = %x{docker run --add-host=puppet:172.17.0.1 --expose=80 -Ptd agent sh -c "sleep 300"}.chomp
 container_info = JSON.parse(%x{docker inspect #{container}})
 
 puts container_info[0]["NetworkSettings"]['Ports']['80/tcp'][0]['HostPort']
 
-exec( "docker exec -it #{container} bash; cleanup" )
+exec( "docker exec -it #{container} #{command}; cleanup" )

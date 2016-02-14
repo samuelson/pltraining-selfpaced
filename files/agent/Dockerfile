@@ -7,5 +7,6 @@ ENV TERM xterm
 RUN curl https://apt.puppetlabs.com/puppetlabs-release-pc1-trusty.deb -o /tmp/puppetlabs-release-pc1-trusty.deb
 RUN dpkg -i /tmp/puppetlabs-release-pc1-trusty.deb
 RUN apt-get update
-RUN apt-get install puppet-agent
+RUN apt-get install puppet-agent 
 RUN ln -s /opt/puppetlabs/bin/puppet /usr/local/bin/puppet
+ADD course_selector /tmp/course_selector
