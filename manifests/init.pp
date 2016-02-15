@@ -19,6 +19,12 @@ class selfpaced (
     mode => '0755',
     source => 'puppet:///modules/selfpaced/selfpaced.rb',
   }    
+  file {'/usr/local/share/words':
+    ensure => directory
+  }
+  file {'/usr/local/share/words/places.txt':
+    source => 'puppet:///modules/selfpaced/places.txt',
+  } 
   file {'/usr/local/bin/cleanup':
     mode => '0755',
     source => 'puppet:///modules/selfpaced/cleanup.rb',
