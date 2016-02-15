@@ -1,4 +1,7 @@
-class selfpaced {
+class selfpaced (
+  $wetty_install_dir = '/root/wetty'
+) {
+  include nodejs
   include docker
   docker::image {'phusion/baseimage':}
   docker::image { 'agent':
@@ -12,12 +15,22 @@ class selfpaced {
     source => 'puppet:///modules/selfpaced/agent/',
   }
 
-  file {'/usr/local/selfpaced':
+  file {'/usr/local/bin/selfpaced':
     mode => '0755',
     source => 'puppet:///modules/selfpaced/selfpaced.rb',
   }    
-  file {'/usr/local/cleanup':
+  file {'/usr/local/bin/cleanup':
     mode => '0755',
     source => 'puppet:///modules/selfpaced/cleanup.rb',
+  }
+  vcsrepo { $wetty_install_dir:
+    source   => 'https://github.com/samuelson/wetty.git',
+    provider => 'git',
+    revision => 'minimal',
+  }
+  nodejs::npm { 'npm-install-dir':
+    list      => true, # flag to tell puppet to execute the package.json file
+    directory => $wetty_install_dir,
+    require   => Vcsrepo[$wetty_install_dir],   
   }
 }
