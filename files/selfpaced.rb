@@ -7,9 +7,9 @@ container_name = words[rand(words.length - 1)] + "_" + words[rand(words.length -
 
 case ARGV[0]
 when "autoloading","classes","cli_intro","code","facter_intro","hiera","hiera_intro","infrastructure","inheritance","module","parser","puppet_lint","relationships","resources","smoke_test","testing","troubleshooting","unit_test","validating"
-  course = "puppet apply -e 'include course_selector::course::#{ARGV[0]}' --modulepath=/tmp; bash"
+  course = "puppet apply -e 'include course_selector::course::#{ARGV[0]}' --modulepath=/tmp; welcome_message; bash"
 else
-  course = "puppet apply -e 'include course_selector::course::default' --modulepath=/tmp; bash"
+  course = "puppet apply -e 'include course_selector::course::default' --modulepath=/tmp; welcome_message; bash"
 end
 
 # Create environment

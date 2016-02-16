@@ -1,0 +1,9 @@
+#! /bin/bash
+
+echo "------------------------------------------------------------"
+echo
+echo "       Welcome to the Puppetlabs eLearning environment"
+echo "           Your session will expire in 5 minutes"
+echo "       Reload the page to reset your learning environment"
+echo
+echo "------------------------------------------------------------"
