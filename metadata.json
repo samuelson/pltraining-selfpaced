@@ -15,7 +15,7 @@
   ],
   "operatingsystem_support": [
     {
-      "operatingsystem": "CentsOS",
+      "operatingsystem": "CentOS",
       "operatingsystemrelease": [
         "7"
       ]
