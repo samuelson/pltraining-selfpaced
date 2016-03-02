@@ -1,0 +1,24 @@
+{
+  "name": "pltraining-selfpaced",
+  "version": "0.0.1",
+  "author": "Josh Samuelson",
+  "summary": "Containerized environment for self-paced courses",
+  "license": "MIT",
+  "source": "https://github.com/puppetlabs/pltraining-selfpaced",
+  "project_page": "https://github.com/puppetlabs/pltraining-selfpaced",
+  "project_page": "https://github.com/puppetlabs/pltraining-selfpaced/issues",
+  "dependencies": [
+    {"name":"puppetlabs/vcsrepo"},
+    {"name":"garethr/docker"},
+    {"name":"willdurand-nodejs"}
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "CentsOS",
+      "operatingsystemrelease": [
+        "7"
+      ]
+    }
+  ]
+}
+
