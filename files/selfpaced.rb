@@ -32,6 +32,8 @@ AUTH_INFO = OPTIONS['AUTH_INFO'] || {
 
 CLASSIFIER_URL = OPTIONS['CLASSIFIER_URL'] || "http://#{MASTER_HOSTNAME}:4433/classifier-api"
 
+TIMEOUT = OPTIONS['TIMEOUT'] || "300"
+
 def classify(username, groups=[''])
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
   certname = "#{username}.selfpaced.puppetlabs.vm"
@@ -52,7 +54,7 @@ def classify(username, groups=[''])
     raise "Could not create node group #{certname}: #{e.message}"
   end
 
-  "Created node group #{certname} assigned to environment #{sername}"
+  "Created node group #{certname} assigned to environment #{username}"
 end
 
 words = File.readlines("/usr/local/share/words/places.txt").each { |l| l.chomp! }
@@ -72,7 +74,7 @@ end
 classify(container_name)
 
 # Run container
-container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "sleep 300; echo '\neLearning timeout reached, shutting down.\nReload page to start a new session'"}.chomp
+container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "sleep #{TIMEOUT}; echo '\neLearning timeout reached, shutting down.\nReload page to start a new session'"}.chomp
 
 # Print a little explaination of what's happening
 puts "Setting up self paced eLearning environment"
