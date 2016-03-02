@@ -12,7 +12,7 @@ class selfpaced (
   file { '/tmp/agent':
     ensure => directory,
     recurse => true,
-    source => 'puppet:///modules/selfpaced/agent/',
+    source => 'puppet:///modules/selfpaced/agent',
   }
 
   file {'/usr/local/bin/selfpaced':
@@ -38,5 +38,10 @@ class selfpaced (
     list      => true, # flag to tell puppet to execute the package.json file
     directory => $wetty_install_dir,
     require   => Vcsrepo[$wetty_install_dir],   
+  }
+
+  include nginx
+  nginx::resource::vhost { 'selfpaced.puppetlabs.com':
+    proxy => 'https://localhost:3000'
   }
 }
