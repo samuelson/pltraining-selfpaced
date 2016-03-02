@@ -10,7 +10,8 @@
   "dependencies": [
     {"name":"puppetlabs/vcsrepo"},
     {"name":"garethr/docker"},
-    {"name":"willdurand-nodejs"}
+    {"name":"willdurand/nodejs"},
+    {"name":"jryman/nginx"}
   ],
   "operatingsystem_support": [
     {
