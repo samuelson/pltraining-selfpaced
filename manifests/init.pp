@@ -18,7 +18,7 @@ class selfpaced (
   # Script to trigger filesync - Should be replaced ASAP
   file {'/usr/local/bin/filesync':
     mode => '0755',
-    source => 'puppet:///modules/selfpaced/filesync',
+    source => 'puppet:///modules/selfpaced/filesync.sh',
   }    
 
   file {'/usr/local/bin/selfpaced':
