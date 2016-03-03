@@ -52,4 +52,5 @@ class selfpaced (
   }
 
   include selfpaced::wetty
+
 }
