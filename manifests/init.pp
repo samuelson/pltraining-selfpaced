@@ -39,5 +39,11 @@ class selfpaced (
     provider => 'gem',
   }
 
+  vcsrepo { '/etc/puppetlabs/code-staging/modules/course_selector':
+    ensure   => present,
+    provider => 'git',
+    source   => 'https://github.com/puppetlabs/pltraining-course_selector'
+  }
+
   include selfpaced::wetty
 }

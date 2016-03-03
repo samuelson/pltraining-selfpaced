@@ -9,6 +9,5 @@ RUN dpkg -i /tmp/puppetlabs-release-pc1-trusty.deb
 RUN apt-get update
 RUN apt-get install puppet-agent 
 RUN ln -s /opt/puppetlabs/bin/puppet /usr/local/bin/puppet
-ADD course_selector /tmp/course_selector
 ADD welcome_message /usr/local/bin/welcome_message
 RUN chmod +x /usr/local/bin/welcome_message
