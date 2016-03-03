@@ -76,18 +76,29 @@ File.open("#{ENVIRONMENTS}/#{container_name}/manifests/site.pp", 'w') { |file|
   file.write "}\n"
 }
 
+# Print a little explaination of what's happening
+puts "Setting up self paced eLearning environment"
+puts "-------------------------------------------"
+
 # Trigger Filesync
 %x{filesync}
 
 # Create node group
 classify(container_name)
 
-# Run container
-container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "sleep #{TIMEOUT}; echo '\neLearning timeout reached, shutting down.\nReload page to start a new session'"}.chomp
 
-# Print a little explaination of what's happening
-puts "Setting up self paced eLearning environment"
-puts "-------------------------------------------"
+# Run container
+container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "puppet agent -t; sleep #{TIMEOUT}"}.chomp
+
+puts <<-WELCOME
+------------------------------------------------------------
+
+       Welcome to the Puppetlabs eLearning environment
+           Your session will expire in 5 minutes
+       Reload the page to reset your learning environment
+
+------------------------------------------------------------
+WELCOME
 
 # Hand off user to container terminal
-exec( "docker exec -it #{container} script -qc \"puppet agent -t; bash\" /dev/null; cleanup #{container_name}" )
+exec( "docker exec -it #{container} script -qc \"bash\" /dev/null; cleanup #{container_name}" )
