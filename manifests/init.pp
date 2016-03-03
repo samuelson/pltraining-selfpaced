@@ -42,6 +42,10 @@ class selfpaced (
 
   include nginx
   nginx::resource::vhost { 'selfpaced.puppetlabs.com':
-    proxy => 'https://localhost:3000'
+    proxy => 'http://127.0.0.1:3000'
+  }
+  package { 'puppetclassify':
+    ensure   => present,
+    provider => 'gem',
   }
 }
