@@ -11,7 +11,7 @@ CERT_PATH =  OPTIONS['CERT_PATH'] || 'certs'
 IMAGE_NAME =  OPTIONS['IMAGE_NAME'] || 'agent'
 
 CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
-CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
+CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code-staging'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
 USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'selfpaced.puppetlabs.com'
