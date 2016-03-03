@@ -11,7 +11,7 @@ class selfpaced::wetty (
   service { 'wetty':
     ensure    => 'running',
     enable    => true,
-    require   => nodejs::npm['npm-install-dir'],
+    require   => Nodejs::Npm['npm-install-dir'],
     subscribe => File['/etc/init.d/wetty'],
   }
 
