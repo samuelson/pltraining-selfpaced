@@ -15,6 +15,12 @@ class selfpaced (
     source => 'puppet:///modules/selfpaced/agent',
   }
 
+  # Script to trigger filesync - Should be replaced ASAP
+  file {'/usr/local/bin/filesync':
+    mode => '0755',
+    source => 'puppet:///modules/selfpaced/filesync',
+  }    
+
   file {'/usr/local/bin/selfpaced':
     mode => '0755',
     source => 'puppet:///modules/selfpaced/selfpaced.rb',
