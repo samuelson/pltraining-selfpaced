@@ -13,7 +13,7 @@ CERT_PATH =  OPTIONS['CERT_PATH'] || 'certs'
 IMAGE_NAME =  OPTIONS['IMAGE_NAME'] || 'agent'
 
 CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
-CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code-staging'
+CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
 USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'selfpaced.puppetlabs.com'
@@ -80,8 +80,6 @@ File.open("#{ENVIRONMENTS}/#{container_name}/manifests/site.pp", 'w') { |file|
 puts "Setting up self paced eLearning environment"
 puts "-------------------------------------------"
 
-# Trigger Filesync
-%x{filesync}
 
 # Create node group
 classify(container_name)

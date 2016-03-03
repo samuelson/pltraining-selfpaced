@@ -11,7 +11,7 @@ CERT_PATH =  OPTIONS['CERT_PATH'] || 'certs'
 IMAGE_NAME =  OPTIONS['IMAGE_NAME'] || 'agent'
 
 CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
-CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code-staging'
+CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
 USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'selfpaced.puppetlabs.com'
@@ -81,7 +81,6 @@ puts "Cleaning up #{CONTAINER_NAME}.#{USERSUFFIX}"
 puts
 puts "Cleaning up code directory"
 remove_environment(CONTAINER_NAME)
-%{flesync}
 
 # Remove certificate
 puts 

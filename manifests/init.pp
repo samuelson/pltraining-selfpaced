@@ -15,11 +15,6 @@ class selfpaced (
     source => 'puppet:///modules/selfpaced/agent',
   }
 
-  # Script to trigger filesync - Should be replaced ASAP
-  file {'/usr/local/bin/filesync':
-    mode => '0755',
-    source => 'puppet:///modules/selfpaced/filesync.sh',
-  }    
 
   file {'/usr/local/bin/selfpaced':
     mode => '0755',
@@ -45,7 +40,7 @@ class selfpaced (
     provider => 'gem',
   }
 
-  vcsrepo { '/etc/puppetlabs/code-staging/modules/course_selector':
+  vcsrepo { '/etc/puppetlabs/code/modules/course_selector':
     ensure   => present,
     provider => 'git',
     source   => 'https://github.com/puppetlabs/pltraining-course_selector'
