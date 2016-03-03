@@ -22,7 +22,7 @@ class selfpaced::wetty (
   }
 
   exec { 'npm install -g':
-    path    => '/usr/local/bin',
+    path    => '/usr/local/bin:/usr/bin:/bin',
     cwd     => $wetty_install_dir,
     unless  => 'npm -g list wetty',
     require => [Class['nodejs'],Vcsrepo[$wetty_install_dir]],
