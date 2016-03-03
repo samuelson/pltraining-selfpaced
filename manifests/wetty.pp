@@ -2,7 +2,7 @@ class selfpaced::wetty (
   $wetty_install_dir = $::selfpaced::params::wetty_install_dir
 ) inherits selfpaced::params {
 
-  file { '/etc/init.d/wetty':
+  file { '/usr/lib/systemd/system/wetty.service':
     ensure => 'present',
     mode   => '0755',
     source => 'puppet:///modules/selfpaced/wetty.conf',
@@ -11,8 +11,8 @@ class selfpaced::wetty (
   service { 'wetty':
     ensure    => 'running',
     enable    => true,
-    require   => Nodejs::Npm['npm-install-dir'],
-    subscribe => File['/etc/init.d/wetty'],
+    require   => Exec['npm install -g'],
+    subscribe => File['/usr/lib/systemd/system/wetty.service'],
   }
 
   vcsrepo { $wetty_install_dir:
@@ -21,10 +21,11 @@ class selfpaced::wetty (
     revision => 'minimal',
   }
 
-  nodejs::npm { 'npm-install-dir':
-    list      => true, # flag to tell puppet to execute the package.json file
-    directory => $wetty_install_dir,
-    require   => Vcsrepo[$wetty_install_dir],   
+  exec { 'npm install -g':
+    path    => '/usr/local/bin',
+    cwd     => $wetty_install_dir,
+    unless  => 'npm -g list wetty',
+    require => [Class['nodejs'],Vcsrepo[$wetty_install_dir]],
   }
 
 }
