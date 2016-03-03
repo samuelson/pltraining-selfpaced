@@ -13,7 +13,7 @@ CERT_PATH =  OPTIONS['CERT_PATH'] || 'certs'
 IMAGE_NAME =  OPTIONS['IMAGE_NAME'] || 'agent'
 
 CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
-CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
+CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code-staging'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
 USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'selfpaced.puppetlabs.com'
@@ -36,7 +36,7 @@ TIMEOUT = OPTIONS['TIMEOUT'] || "300"
 
 def classify(username, groups=[''])
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
-  certname = "#{username}.selfpaced.puppetlabs.vm"
+  certname = "#{username}.#{USERSUFFIX}"
   groupstr = groups.join('\,')
 
   group_hash = {
@@ -62,13 +62,22 @@ container_name = words[rand(words.length - 1)] + "_" + words[rand(words.length -
 
 case ARGV[0]
 when "autoloading","classes","cli_intro","code","facter_intro","hiera","hiera_intro","infrastructure","inheritance","module","parser","puppet_lint","relationships","resources","smoke_test","testing","troubleshooting","unit_test","validating"
-  course = "puppet apply -e 'include course_selector::course::#{ARGV[0]}' --modulepath=/tmp; welcome_message; bash"
+  course = ARGV[0]
 else
-  course = "puppet apply -e 'include course_selector::course::default' --modulepath=/tmp; welcome_message; bash"
+  course = "default"
 end
 
 # Create environment
-%x{mkdir -p #{ENVIRONMENTS}/#{container_name}}
+%x{mkdir -p #{ENVIRONMENTS}/#{container_name}/{manifests,modules}}
+# Create site.pp with include course_selector::course::${course}
+File.open("#{ENVIRONMENTS}/#{container_name}/manifests/site.pp", 'w') { |file|
+  file.write "node default {\n"
+  file.write "  include course_selector::course::#{course}\n"
+  file.write "}\n"
+}
+
+# Trigger Filesync
+%x{filesync}
 
 # Create node group
 classify(container_name)
@@ -81,6 +90,4 @@ puts "Setting up self paced eLearning environment"
 puts "-------------------------------------------"
 
 # Hand off user to container terminal
-exec( "docker exec -it #{container} script -qc \"#{course}\" /dev/null; cleanup #{container_name}" )
-
-
+exec( "docker exec -it #{container} script -qc \"puppet agent -t; bash\" /dev/null; cleanup #{container_name}" )
