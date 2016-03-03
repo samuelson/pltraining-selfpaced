@@ -29,16 +29,6 @@ class selfpaced (
     mode => '0755',
     source => 'puppet:///modules/selfpaced/cleanup.rb',
   }
-  vcsrepo { $wetty_install_dir:
-    source   => 'https://github.com/samuelson/wetty.git',
-    provider => 'git',
-    revision => 'minimal',
-  }
-  nodejs::npm { 'npm-install-dir':
-    list      => true, # flag to tell puppet to execute the package.json file
-    directory => $wetty_install_dir,
-    require   => Vcsrepo[$wetty_install_dir],   
-  }
 
   include nginx
   nginx::resource::vhost { 'selfpaced.puppetlabs.com':
@@ -48,4 +38,6 @@ class selfpaced (
     ensure   => present,
     provider => 'gem',
   }
+
+  include selfpaced::wetty
 }
