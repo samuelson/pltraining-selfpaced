@@ -81,6 +81,7 @@ puts "Cleaning up #{CONTAINER_NAME}.#{USERSUFFIX}"
 puts
 puts "Cleaning up code directory"
 remove_environment(CONTAINER_NAME)
+%{flesync}
 
 # Remove certificate
 puts 
