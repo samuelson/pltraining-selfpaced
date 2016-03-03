@@ -5,7 +5,7 @@ class selfpaced (
   include docker
   docker::image {'phusion/baseimage':}
   docker::image { 'agent':
-    docker_file => '/tmp/agent/Dockerfile',
+    docker_dir => '/tmp/agent',
     subscribe => File['/tmp/agent'],
     require => Docker::Image['phusion/baseimage'],
   }
