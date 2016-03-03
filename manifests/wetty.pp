@@ -5,12 +5,13 @@ class selfpaced::wetty (
   file { '/etc/init.d/wetty':
     ensure => 'present',
     mode   => '0755',
-    source => 'puppet:///modules/puppetfactory/wetty.conf',
+    source => 'puppet:///modules/selfpaced/wetty.conf',
   }
+
   service { 'wetty':
     ensure    => 'running',
     enable    => true,
-    require   => Exec['npm -g install wetty'],
+    require   => nodejs::npm['npm-install-dir'],
     subscribe => File['/etc/init.d/wetty'],
   }
 
