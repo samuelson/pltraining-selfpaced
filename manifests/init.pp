@@ -19,13 +19,13 @@ class selfpaced (
   file {'/usr/local/bin/selfpaced':
     mode => '0755',
     source => 'puppet:///modules/selfpaced/selfpaced.rb',
-  }    
+  }
   file {'/usr/local/share/words':
     ensure => directory
   }
   file {'/usr/local/share/words/places.txt':
     source => 'puppet:///modules/selfpaced/places.txt',
-  } 
+  }
   file {'/usr/local/bin/cleanup':
     mode => '0755',
     source => 'puppet:///modules/selfpaced/cleanup.rb',
@@ -47,5 +47,14 @@ class selfpaced (
   }
 
   include selfpaced::wetty
+  include selfpaced::squid
+
+  firewall { '000 reject outbound SSH and SMTP traffic on docker0':
+    iniface     => 'docker0',
+    chain       => 'FORWARD',
+    proto       => 'tcp',
+    dport       => ['22','25'],
+    action      => 'reject',
+  }
 
 }
