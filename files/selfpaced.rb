@@ -96,7 +96,8 @@ puts <<-WELCOME
 
        Welcome to the Puppetlabs eLearning environment
            Your session will expire in 5 minutes
-       Reload the page to reset your learning environment
+
+              Type `puppet agent -t` to begin
 
 ------------------------------------------------------------
 WELCOME
