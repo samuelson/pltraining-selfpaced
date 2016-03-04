@@ -86,7 +86,10 @@ classify(container_name)
 
 
 # Run container
-container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "puppet agent -t; sleep #{TIMEOUT}"}.chomp
+container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
+
+# Set up shutdown timeout
+%x{docker exec -dt #{container} script -qc \"sleep #{TIMEOUT}; shutdown now\" /dev/null}
 
 puts <<-WELCOME
 ------------------------------------------------------------
