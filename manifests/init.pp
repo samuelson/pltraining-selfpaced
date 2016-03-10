@@ -3,11 +3,11 @@ class selfpaced (
 ) {
   include nodejs
   include docker
-  docker::image {'phusion/baseimage':}
+  docker::image {'maci0/systemd':}
   docker::image { 'agent':
     docker_dir => '/tmp/agent',
     subscribe => File['/tmp/agent'],
-    require => Docker::Image['phusion/baseimage'],
+    require => Docker::Image['maci0/systemd'],
   }
   file { '/tmp/agent':
     ensure => directory,
@@ -41,7 +41,7 @@ class selfpaced (
   }
 
   vcsrepo { '/etc/puppetlabs/code/modules/course_selector':
-    ensure   => present,
+    ensure   => latest,
     provider => 'git',
     source   => 'https://github.com/puppetlabs/pltraining-course_selector'
   }
