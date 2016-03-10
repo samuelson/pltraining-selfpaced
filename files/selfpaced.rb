@@ -26,8 +26,8 @@ DOCKER_IP       = OPTIONS['DOCKER_IP'] || `facter ipaddress_docker0`.strip
 
 AUTH_INFO = OPTIONS['AUTH_INFO'] || {
     "ca_certificate_path" => "#{CONFDIR}/ssl/ca/ca_crt.pem",
-      "certificate_path"    => "#{CONFDIR}/ssl/certs/#{MASTER_HOSTNAME}.pem",
-        "private_key_path"    => "#{CONFDIR}/ssl/private_keys/#{MASTER_HOSTNAME}.pem"
+    "certificate_path"    => "#{CONFDIR}/ssl/certs/#{MASTER_HOSTNAME}.pem",
+    "private_key_path"    => "#{CONFDIR}/ssl/private_keys/#{MASTER_HOSTNAME}.pem"
 }
 
 CLASSIFIER_URL = OPTIONS['CLASSIFIER_URL'] || "http://#{MASTER_HOSTNAME}:4433/classifier-api"
@@ -68,7 +68,9 @@ else
 end
 
 # Create environment
-%x{mkdir -p #{ENVIRONMENTS}/#{container_name}/{manifests,modules}}
+FileUtil.mkdir_p "#{ENVIRONMENTS}/#{container_name}/modules"
+FileUtil.mkdir_p "#{ENVIRONMENTS}/#{container_name}/manifests"
+
 # Create site.pp with include course_selector::course::${course}
 File.open("#{ENVIRONMENTS}/#{container_name}/manifests/site.pp", 'w') { |file|
   file.write "node default {\n"
@@ -89,7 +91,10 @@ classify(container_name)
 container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
 
 # Set up shutdown timeout
-%x{docker exec -dt #{container} script -qc \"sleep #{TIMEOUT}; shutdown now\" /dev/null}
+pid = Process.fork do 
+  sleep TIMEOUT
+  exec("docker exec -dt #{container} script -qc \"shutdown now\" /dev/null")
+end
 
 puts <<-WELCOME
 ------------------------------------------------------------
