@@ -49,11 +49,11 @@ class selfpaced (
   include selfpaced::wetty
   include selfpaced::squid
 
-  firewall { '000 reject outbound SSH and SMTP traffic on docker0':
+  firewall { '000 reject outbound SSH, SMTP, and BTC traffic on docker0':
     iniface     => 'docker0',
     chain       => 'FORWARD',
     proto       => 'tcp',
-    dport       => ['22','25'],
+    dport       => ['22','25','8333'],
     action      => 'reject',
   }
 
