@@ -2,6 +2,7 @@
 # Script for selecting self paced course
 require 'json'
 require 'puppetclassify'
+require 'fileutils'
 
 OPTIONS = YAML.load_file('/etc/selfpaced.yaml') rescue {}
 
@@ -68,8 +69,8 @@ else
 end
 
 # Create environment
-FileUtil.mkdir_p "#{ENVIRONMENTS}/#{container_name}/modules"
-FileUtil.mkdir_p "#{ENVIRONMENTS}/#{container_name}/manifests"
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{container_name}/modules"
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{container_name}/manifests"
 
 # Create site.pp with include course_selector::course::${course}
 File.open("#{ENVIRONMENTS}/#{container_name}/manifests/site.pp", 'w') { |file|
@@ -92,7 +93,7 @@ container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCOD
 
 # Set up shutdown timeout
 pid = Process.fork do 
-  sleep TIMEOUT
+  sleep TIMEOUT.to_i
   exec("docker exec -dt #{container} script -qc \"shutdown now\" /dev/null")
 end
 
