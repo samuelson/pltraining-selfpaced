@@ -33,7 +33,14 @@ class selfpaced (
 
   include nginx
   nginx::resource::vhost { 'selfpaced.puppetlabs.com':
-    proxy => 'http://127.0.0.1:3000'
+    proxy    => 'http://127.0.0.1:3000'
+  }
+  nginx::resource::vhost { 'localhost':
+    ssl_port   => '3001',
+    proxy    => 'http://127.0.0.1:3000',
+    ssl      => true,
+    ssl_cert => '/etc/puppetlabs/puppet/ssl/certs/master.puppetlabs.vm.pem',
+    ssl_key  => '/etc/puppetlabs/puppet/ssl/private_keys/master.puppetlabs.vm.pem',
   }
   package { 'puppetclassify':
     ensure   => present,
