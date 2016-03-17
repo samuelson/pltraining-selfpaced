@@ -36,7 +36,7 @@ class selfpaced (
     proxy    => 'http://127.0.0.1:3000'
   }
   nginx::resource::vhost { 'localhost':
-    ssl_port   => '3001',
+    ssl_port   => '443',
     proxy    => 'http://127.0.0.1:3000',
     ssl      => true,
     ssl_cert => '/etc/puppetlabs/puppet/ssl/certs/master.puppetlabs.vm.pem',
