@@ -54,6 +54,7 @@ class selfpaced (
   }
 
   include selfpaced::wetty
+  include selfpaced::webpage
   include selfpaced::squid
 
   firewall { '000 reject outbound SSH, SMTP, and BTC traffic on docker0':

@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US">
+  <head>
+    <base href="https://docs.puppetlabs.com" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Managing and Deploying Puppet Code — Documentation — Puppet Labs</title>
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="alternate" type="application/atom+xml" title="Puppet Labs Documentation Updates" href="https://github.com/puppetlabs/puppet-docs/commits/master.atom">
+    <link rel="alternate" type="application/atom+xml" title="Puppet Labs Blog Feed" href="http://puppetlabs.com/feed/">
+    <link rel='index' title='Puppet Labs Documentation' href='https://docs.puppetlabs.com' />
+    <link rel='icon' href='/favicon.ico' />
+
+
+  <meta name="description" content="Deploying environments and modules with r10k, a Puppet code management tool.">
+
+      <!--[if gte IE 9]>
+      <style type="text/css">
+          .gradient {
+              filter: none;
+          }
+      </style>
+      <![endif]-->
+
+<!-- Google analytics -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-1537572-5']);
+  _gaq.push(['_setDomainName', 'puppetlabs.com']);
+  _gaq.push(['_addIgnoredRef', 'puppetlabs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();
+</script>
+<!-- End Google analytics -->
+
+
+    <!-- FIXME: absolute paths -->
+
+    <script type='text/javascript' src='/files/javascripts/html5.js'></script>
+    <script type='text/javascript' src='/files/javascripts/jquery-1.11.1.min.js'></script>
+    <script type='text/javascript' src='/files/javascripts/quick_nav.js'></script>
+    <script type='text/javascript' src='/files/javascripts/navigation-accordion.js'></script>
+
+    <script type="text/javascript" src="https://puppetlabs.com/sites/all/themes/puppetlabs/js/leadcapture.js"></script>
+
+    <!-- All in One SEO Pack 1.6.10.1 by Michael Torbert of Semper Fi Web Design[127,146] -->
+    <meta name="keywords" content="Puppet, puppet labs, reductive labs, open source, system administrator, ruby, data center, automation, support" />
+    <!-- /all in one seo pack -->
+
+    <!-- Set a canonical URL, in the following order: 1. explicit, from yaml frontmatter; 2. implicit, from document data; 3. singleton, from page URL. -NF -->
+    <link rel="canonical" href="https://docs.puppetlabs.com/pe/latest/r10k_run.html" />
+
+    <!-- FIXME: absolute paths -->
+
+    <link rel="stylesheet" type="text/css" href="/files/stylesheets/prism.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="/files/stylesheets/style.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="/files/stylesheets/syntax.css" media="screen"> <!-- index -->
+
+    <!--[if IE 7]>
+    <link rel="stylesheet" type="text/css" href="/files/stylesheets/ie_7.css" media="screen"> <!-- index -->
+    <![endif]-->
+
+    <!--[if IE 8]>
+      <link rel="stylesheet" type="text/css" href="/files/stylesheets/ie_8.css" media="screen"> <!-- index -->
+    <![endif]-->
+
+    <!-- Code for hover anchor links on headers begins. Relies on jQuery. Code comes from https://github.com/bryanbraun/anchorjs -->
+<script type="text/javascript" src="/files/javascripts/anchor.min.js"></script>
+<link rel="stylesheet" href="/files/stylesheets/anchor.css">
+<script>
+$(document).ready(function(){
+    addAnchors("#content h1");
+    addAnchors("#content h2");
+    addAnchors("#content h3");
+    addAnchors("#content h4");
+    });
+</script>
+<!-- Code for hover anchor links ends -->
+
+
+    <style>
+      .try-it {
+        position: absolute;
+        right: 0;
+        color: white !important;
+        background-color: rgba(48, 44, 109, .5);
+        border: 1px solid #ccc;
+        font-weight: bolder;
+        padding: 3px;
+      }
+      .try-it:hover {
+        background-color: rgba(48, 44, 109, .75);
+        text-decoration: none;
+      }
+      #try_box-source {
+        width: 100%;
+        height: 320px;
+      }
+      #timeout {
+
+        right: 2em;
+        top: 0.5em;
+        font-weight: normal;
+      }
+
+    </style>
+
+    <link rel="stylesheet" href="http:///code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="http://54.187.144.42/jquery.runner-min.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+      function try_box(title, text, url) {
+        var terminal = $('<div id="try_box" />');
+
+        if(text) {
+          $(terminal).append( $("<p/>").text(text) );
+        }
+
+        if(url) {
+          $(terminal).append( $('<iframe />', { src: url, id: 'try_box-source' }) );
+        }
+          
+        $(terminal).append('<span id="timeout" />');
+
+          $('#timeout').runner({
+            countdown: true,
+            startAt: 5*60*1000,
+            stopAt: 0,
+            milliseconds: false,
+          });
+
+          $('#timeout').runner('start');
+
+
+        return terminal;
+      }
+
+      $(document).ready(function() {
+        $('pre').prepend($("<a>", { href: 'http://'+ window.location.hostname + ':3000', class: 'try-it' }).text('Try it out...'));
+
+        var try_click = function(event) {
+          event.preventDefault();
+          var try_it =  try_box($(this).text(), null, $(this).attr('href'));
+          $(this).parent().prepend($(try_it));
+
+          // Change the button to Close
+          $(this).text("Close");
+          $(this).unbind('click').click( function(event) {
+              event.preventDefault();
+              $(this).text('Try it out...');
+              $(try_it).remove();
+
+              // Restore original function
+              $(this).click( try_click );
+          });
+        };
+
+        $('.try-it').click( try_click );
+      });
+    </script>
+
+
+
+</head>
+
+  </head>
+
+  <body id="puppetlabsdocs" class="docs">
+  <!-- Google Tag Manager -->
+  <noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-PF6FV6"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-PF6FV6');</script>
+  <!-- End Google Tag Manager -->
+  <style type="text/css">h1, h2{ visibility : hidden }</style>
+  <!--[if IE 8]>
+    <style type="text/css">h1, h2{ visibility : visible }</style>
+  <![endif]-->
+
+  <!-- Hidden Search Field -->
+  <form action="https://www.google.com/cse" id="cse-search-box">
+      <div>
+          <input type="hidden" name="cx" value="018276284386040486881:wgstg4mh_uq" />
+          <input type="hidden" name="ie" value="UTF-8" />
+          <input type="text" name="q" class="gsc-input" size="31" />
+          <input type="submit" name="sa" class="searchbtn" value="Search" />
+      </div>
+  </form>
+
+  <!-- Rebuild of Site Header -->
+  <header id="site-header">
+      <div id="morebar">
+          <ul>
+              <li class="home">
+                  <a href="https://puppetlabs.com/" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'Home']);">
+                      <img src="/images/svg/icon-home.svg" />
+                      <span>home</span>
+                  </a>
+              </li>
+              <li class="forge">
+                  <a href="https://forge.puppetlabs.com" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'Forge']);">
+                      <img src="/images/svg/icon-tools.svg" />
+                      <span>forge</span>
+                  </a>
+              </li>
+              <li class="docs">
+                  <a href="https://docs.puppetlabs.com" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'Docs']);">
+                      <img src="/images/svg/icon-book.svg" />
+                      <span>docs</span>
+                  </a>
+              </li>
+              <li class="learn">
+                  <a href="https://puppetlabs.com/learn" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'Training']);">
+                      <img src="/images/svg/icon-graduation-cap.svg" />
+                      <span>learn</span>
+                  </a>
+              </li>
+              <li class="community">
+                  <a href="https://puppetlabs.com/community/overview" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'Community']);">
+                      <img src="/images/svg/icon-users.svg" />
+                      <span>community</span>
+                  </a>
+              </li>
+              <li class="tickets">
+                  <a href="https://tickets.puppetlabs.com" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'JIRA']);">
+                      <img src="/images/svg/icon-ticket.svg" />
+                      <span>tickets</span>
+                  </a>
+              </li>
+              <li class="help">
+                  <a href="https://puppetlabs.com/help" onclick="_gaq.push(['_trackEvent', 'Toolbar', 'click', 'Help']);">
+                      <img src="/images/svg/icon-help-circled.svg" />
+                      <span>help</span>
+                  </a>
+              </li>
+          </ul>
+      </div>
+      <div id="navbar" class="gradient">
+          <!-- Logo -->
+          <div id="navbar-logo" class="navbar-section">
+              <div class="centered">
+                  <a href="https://puppetlabs.com/">
+                      <img src="/images/svg/logo.svg">
+                  </a>
+              </div>
+          </div>
+
+          <!-- Title -->
+          <div id="navbar-title" class="navbar-section">
+              <div class="centered">
+                  <a href="http://docs.puppetlabs.com">Documentation</a>
+              </div>
+          </div>
+
+          <!-- Search -->
+          <div id="navbar-search" class="navbar-section">
+              <div class="centered">
+                  <div id="search-container">
+                      <input type="text" placeholder="search" class="gradient">
+                      <input type="submit" value="&#xf002;">
+                  </div>
+              </div>
+          </div>
+
+          <script type="text/javascript">
+
+              // Handle routing of search to real (hidden) search input
+              var search_input = jQuery("#search-container [type='text']");
+              var search_icon = jQuery("#search-container [type='submit']");
+              search_input.keyup(function (e) {
+                  if (e.keyCode == 13) {
+                      jQuery('#cse-search-box [type="text"]').val(search_input.val());
+                      jQuery('#cse-search-box [type="submit"]').click();
+                  }
+              });
+              search_icon.click(function(e) {
+                  jQuery('#cse-search-box [type="text"]').val(search_input.val());
+                  jQuery('#cse-search-box [type="submit"]').click();
+              });
+          </script>
+      </div>
+  </header>
+
+  <section id="masthead">
+    <div class="site-width">
+      <h1>
+<ul class="doc-navigation" id="quick-nav">
+    <li class="with-submenu">
+        <a href="#">
+            <span>Puppet Enterprise</span>
+            <span class="drop-down-trigger"></span>
+        </a>
+        <dl>
+            <dt>Puppet Enterprise</dt>
+
+            <dd><a href="/pe/latest/">2015.3 (latest)</a></dd>
+
+            <dt>Puppet (PE and open source)</dt>
+            <dd><a href="/puppet/4.3/reference/">4.3 (recommended for Puppet Enterprise 2015.3)</a></dd>
+            <dd><a href="/puppet/latest/reference/">4.3 (latest)</a></dd>
+
+            <dt>Puppet Server (PE and open source)</dt>
+            <dd><a href="/puppetserver/2.2/">2.2 (recommended for Puppet Enterprise 2015.3)</a></dd>
+            <dd><a href="/puppetserver/latest/">2.2 (latest)</a></dd>
+
+            <dt>PuppetDB (PE and open source)</dt>
+            <dd><a href="/puppetdb/3.2/">3.2 (recommended for Puppet Enterprise 2015.3)</a></dd>
+            <dd><a href="/puppetdb/latest/">3.2 (latest)</a></dd>
+
+            <dt>Facter (PE and open source)</dt>
+            <dd><a href="/facter/3.1/">3.1 (recommended for Puppet Enterprise 2015.3)</a></dd>
+            <dd><a href="/facter/latest/">3.1 (latest)</a></dd>
+
+            <dt>Hiera (PE and open source)</dt>
+            <dd><a href="/hiera/3.0/">3.0 (recommended for Puppet Enterprise 2015.3)</a></dd>
+            <dd><a href="/hiera/latest/">3.0 (latest)</a></dd>
+
+            <dt>MCollective (PE and open source)</dt>
+            <dd><a href="/mcollective/index.html">Latest</a></dd>
+
+            <dt>Other</dt>
+            <dd><a href="/">Puppet Docs Front Page</a></dd>
+            <dd><a href="/forge/">Using the Puppet Forge</a></dd>
+            <dd><a href="/puppet/latest/reference/type.html">Resource Type Reference</a></dd>
+            <dd><a href="/references/glossary.html">Glossary of Puppet Terms</a></dd>
+        </dl>
+    </li>
+</ul>
+ /
+<ul class="doc-navigation" id="version-switcher">
+    <li class="with-submenu">
+        <a href="#">
+            <span>Version: 2015.3 (latest)</span>
+            <span class="drop-down-trigger"></span>
+        </a>
+        <dl>
+            <dt></dt>
+
+
+            <dd>
+
+                Version 2015.3 (latest)
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/2015.2/r10k_run.html">Version 2015.2</a>
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/3.8/r10k_run.html">Version 3.8</a>
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/3.7/r10k_run.html">Version 3.7</a>
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/3.3/r10k_run.html">Version 3.3</a>
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/3.2/r10k_run.html">Version 3.2</a>
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/3.1/r10k_run.html">Version 3.1</a>
+
+            </dd>
+
+
+            <dd>
+
+                <a href="/pe/3.0/r10k_run.html">Version 3.0</a>
+
+            </dd>
+
+
+
+
+
+
+
+
+
+
+
+        </dl>
+    </li>
+</ul>
+
+</h1>
+    </div>
+  </section>
+
+  <section id="content">
+    <div class="site-width">
+      <div class="primary-secondary-content">
+        <div class="primary-content">
+          <h1>Deploying Environments with r10k</h1>
+          <div id="version-note">
+            <p>This is a POC demo environment only and most commands aren't actually installed. In other words,
+            r10k won't work. Try running some of the following commands to see an example of what this can do.</p>
+            <ul>
+              <li><code>puppet agent -t</code></li>
+              <li><code>puppet resource user root</code></li>
+              <li><code>facter -p</code></li>
+            </ul>
+          </div>
+          <nav class="in-page" id="page-nav">
+<ol class="toc">
+  <li class="toc-lv2"><a href="#initial-r10k-run">Initial r10k run</a></li>
+  <li class="toc-lv2"><a href="#updating-environments">Updating Environments</a>
+<ol class="toc">
+   <li class="toc-lv3"><a href="#update-all-environments">Update all environments</a></li>
+   <li class="toc-lv3"><a href="#update-all-environments-and-modules">Update all environments and modules</a></li>
+   <li class="toc-lv3"><a href="#update-a-single-environment">Update a single environment</a></li>
+   <li class="toc-lv3"><a href="#update-a-single-environment-and-its-modules">Update a single environment and its modules</a></li>
+</ol></li>
+  <li class="toc-lv2"><a href="#installing-and-updating-modules">Installing and Updating modules</a>
+<ol class="toc">
+   <li class="toc-lv3"><a href="#update-a-single-module-across-all-environments">Update a single module across all environments</a></li>
+   <li class="toc-lv3"><a href="#update-multiple-modules-across-all-environments">Update multiple modules across all environments</a></li>
+   <li class="toc-lv3"><a href="#update-one-or-more-modules-in-a-single-environment">Update one or more modules in a single environment</a></li>
+</ol></li>
+  <li class="toc-lv2"><a href="#viewing-environments">Viewing environments</a>
+<ol class="toc">
+   <li class="toc-lv3"><a href="#display-all-environments-being-managed-by-r10k">Display all environments being managed by r10k</a></li>
+   <li class="toc-lv3"><a href="#display-environments-and-modules">Display environments and modules</a></li>
+   <li class="toc-lv3"><a href="#display-specific-environments-and-modules">Display specific environments and modules</a></li>
+</ol></li>
+</ol></nav>
+    <div id="rendered-markdown">
+
+<p>After you’ve created your <a href="./cmgmt_control_repo.html">control repo</a>, declared your modules in <a href="./cmgmt_puppetfile.html">Puppetfiles</a>, and <a href="./r10k_config.html">configured r10k</a>, it’s time to run r10k.</p>
+
+<h2 id="initial-r10k-run">Initial r10k run</h2>
+
+<p>The first time you run r10k, deploy all environments and modules with the following command:</p>
+
+<pre><code>r10k deploy environment
+</code></pre>
+
+<p>This command:</p>
+
+<ol>
+  <li>Checks your control repository to see what branches are present.</li>
+  <li>Maps those branches to the Puppet directory environments.</li>
+  <li>Clones your Git repo, and either creates (if this is your first run) or updates (if it is a subsequent run) your directory environments with the contents of your repo branches.</li>
+</ol>
+
+<blockquote>
+  <p>Note that when running commands to deploy code on a master, r10k needs write access to your Puppet environment path. If you’re using Puppet Enterprise this account is pe-puppet. To do this, run r10k as the Puppet user or as root. Running the user as root requires access control to the root user.</p>
+</blockquote>
+
+<h2 id="updating-environments">Updating Environments</h2>
+
+<h3 id="update-all-environments">Update all environments</h3>
+
+<pre><code>r10k deploy environment
+</code></pre>
+
+<p>This command updates existing environments and recursively creates new environments.</p>
+
+<p>When an environment is deployed for the first time (as in the initial r10k run above), this command automatically updates all modules specified in each environment’s Puppetfile as well. For subsequent updates, only the environment itself is updated.</p>
+
+<h3 id="update-all-environments-and-modules">Update all environments and modules</h3>
+
+<p>To update all environments and modules on subsequent r10k runs, run the same command, with the <code>--puppetfile</code> flag:</p>
+
+<pre><code>r10k deploy environment --puppetfile
+</code></pre>
+
+<p>This command:</p>
+
+<ul>
+  <li>Updates all sources.</li>
+  <li>Creates new environments.</li>
+  <li>Deletes old environments.</li>
+  <li>Recursively updates all environment modules specified in environment Puppetfiles.</li>
+</ul>
+
+<p>However, you should note that this is the slowest method for using r10k because it does the maximum possible work. Use less resource-intensive commands for most updates of your environments and modules.</p>
+
+<h3 id="update-a-single-environment">Update a single environment</h3>
+
+<pre><code>r10k deploy environment &lt;MY_WORKING_ENVIRONMENT&gt;
+</code></pre>
+
+<p>When you’re actively developing on a given environment, this is the best way to deploy your changes. When an environment is deployed for the first time, it automatically updates all modules specified by the environment’s Puppetfile as well. For subsequent updates, only the environment itself is updated.</p>
+
+<h3 id="update-a-single-environment-and-its-modules">Update a single environment and its modules</h3>
+
+<pre><code>r10k deploy environment &lt;MY_WORKING_ENVIRONMENT&gt; --puppetfile
+</code></pre>
+
+<p>This updates the given environment and all modules contained in its Puppetfile. This is useful if you want to make sure that a given environment is fully up to date.</p>
+
+<h2 id="installing-and-updating-modules">Installing and Updating modules</h2>
+
+<p>When you use the <code>r10k deploy module</code> subcommand to update modules, r10k installs or updates the modules as you’ve specified them in each environment’s <a href="./cmgmt_puppetfile.html">Puppetfile</a>. If the specified module is not described in an environment’s Puppetfile, that environment will be skipped.</p>
+
+<h3 id="update-a-single-module-across-all-environments">Update a single module across all environments</h3>
+
+<pre><code>r10k deploy module apache
+</code></pre>
+
+<p>This is useful for when you’re working on a module specified in a Puppetfile and want to update it across all environments.</p>
+
+<h3 id="update-multiple-modules-across-all-environments">Update multiple modules across all environments</h3>
+
+<pre><code>r10k deploy module apache jenkins java
+</code></pre>
+
+<h3 id="update-one-or-more-modules-in-a-single-environment">Update one or more modules in a single environment</h3>
+
+<pre><code>r10k deploy module -e production apache jenkins java
+</code></pre>
+
+<h2 id="viewing-environments">Viewing environments</h2>
+
+<p>You can display information about your environments and modules with the <code>display</code> subcommand.</p>
+
+<h3 id="display-all-environments-being-managed-by-r10k">Display all environments being managed by r10k</h3>
+
+<pre><code>r10k deploy display
+</code></pre>
+
+<h3 id="display-environments-and-modules">Display environments and modules</h3>
+
+<p>To display all r10k-managed environments and Puppetfile modules:</p>
+
+<pre><code>r10k deploy display -p
+</code></pre>
+
+<p>You can get detailed information about the expected and actual module versions by adding the <code>--detail</code> flag to this command:</p>
+
+<pre><code>r10k deploy display -p --detail
+</code></pre>
+
+<h3 id="display-specific-environments-and-modules">Display specific environments and modules</h3>
+
+<p>For an list of specific environments being managed by r10k, and the modules specified in their Puppetfiles along with their expected and actual versions, limit your query with the environment names. For example:</p>
+
+<pre><code>r10k deploy display -p --detail production vmwr webrefactor
+</code></pre>
+
+<p>The above example displays details on the modules for environments called production, vmwr, and webrefactor.</p>
+
+
+    </div>
+          <blockquote><p style="font-size: 1.3em; text-align: center;"><a href="#content">↑ Back to top</a></p></blockquote>
+        </div>
+        <nav class="main">
+              <div id="subCol">
+                  <h3><a href="./index.html">Puppet Enterprise 2015.3</a></h3>
+
+<ul>
+  <li><strong>Overview</strong>
+    <ul>
+      <li><a href="./overview_about_pe.html">About PE</a></li>
+      <li><a href="./overview_version_table.html">Component Versions in Recent PE Releases</a></li>
+      <li><a href="./overview_getting_support.html">Getting Support</a></li>
+      <li><a href="./pe_versioning.html">PE Version Numbers</a></li>
+    </ul>
+  </li>
+  <li><strong>Release Notes</strong>
+    <ul>
+        <li><a href="./release_notes.html">New Features and Deprecations</a></li>
+        <li><strong><a href="./release_notes_known_issues.html">Known Issues</a></strong>
+          <ul>
+            <li><a href="./release_notes_known_issues_install.html">Install and Upgrade</a></li>
+            <li><a href="./release_notes_known_issues_console.html">PE Console and Console Services</a></li>
+            <li><a href="./release_notes_known_issues_puppetserver.html">Puppet Server</a></li>
+            <li><a href="./release_notes_known_issues_puppetdb.html">PuppetDB and PostgreSQL</a></li>
+            <li><a href="./release_notes_known_issues_app.html">Application Orchestration</a></li>
+            <li><a href="./release_notes_known_issues_core.html">PE Services and Puppet Core</a></li>
+            <li><a href="./release_notes_known_issues_platforms.html">Supported Platforms</a></li>
+            <li><a href="./release_notes_known_issues_razor.html">Razor</a></li>
+            <li><a href="./release_notes_known_issues_codemgmt.html">Code Management</a></li>
+            <li><a href="./release_notes_known_issues_docs.html">Documentation</a></li>
+          </ul>
+         </li>
+        <li><a href="./release_notes_security.html">Security and Bug Fixes</a></li>
+    </ul>
+  </li>
+  <li><strong>Quick Start Guides</strong>
+    <ul>
+        <li><strong><a href="./quick_start.html">Quick Start Guide for *Nix Users</a></strong>
+          <ul>
+            <li><a href="./quick_start_install_mono.html">1: Install PE</a></li>
+            <li><a href="./quick_start_install_agents_nix.html">2: Install Unix Agents</a></li>
+            <li><a href="./quick_start_helloworld.html">3: Hello, World!</a></li>
+            <li><a href="./quick_start_module_install_nix.html">4: Module Install</a></li>
+            <li><a href="./quick_start_adding_class_nix.html">5: Classifying Agents</a></li>
+            <li><a href="./quick_start_nc_rbac.html">6: Classifying Nodes and Assigning User Permissions</a></li>
+            <li><a href="./quick_writing_nix.html">7: Writing Modules</a></li>
+           </ul>
+           </li>
+        <li><strong><a href="./quick_start_windows_intro.html">Quick Start Guide for Windows Users</a></strong>
+          <ul>
+            <li><a href="./quick_start_install_mono.html">1: Install PE</a></li>
+            <li><a href="./quick_start_install_agents_windows.html">2: Install Agents</a></li>
+            <li><a href="./quick_start_module_install_windows.html">3: Module Install</a></li>
+            <li><a href="./quick_start_adding_class_windows.html">4: Classifying Agents</a></li>
+            <li><a href="./quick_start_nc_rbac.html">5: Classifying Nodes and Assigning User Permissions</a></li>
+            <li><a href="./quick_writing_windows.html">6: Writing Modules (Windows)</a></li>
+         </ul>
+        <li><strong><a href="./quick_start_essential_config.html">Essential Configuration Tasks</a></strong>
+           <ul>
+            <li><a href="./quick_start_ntp.html">NTP Quick Start Guide</a></li>
+            <li><a href="./quick_start_dns.html">DNS Quick Start Guide</a></li>
+            <li><a href="./quick_start_ssh.html">SSH Quick Start Guide</a></li>
+            <li><a href="./quick_start_sudo.html">Sudo Quick Start Guide</a></li>
+            <li><a href="./quick_start_firewall.html">Firewall Quick Start Guide</a></li>
+          </ul>
+      </ul>
+  </li>
+  <li><a href="./puppet_overview.html">Puppet Platform Documentation</a></li>
+  <li><strong>Managing Windows in PE</strong>
+    <ul>
+    <li><a href="./windows_installing.html">Installing Puppet Enterprise for a Windows Environment</a></li>
+      <li><a href="./windows_config_mgmnt.html">Managing Windows Configurations</a></li>
+      <li><a href="./windows_modules.html">Installing and Using Windows Modules</a></li>
+    </ul>
+  </li>
+  <li><strong>Installing PE</strong>
+      <ul>
+         <li><a href="./install_system_requirements.html">System Requirements</a></li>
+         <li><a href="./install_basic.html">Installing PE Overview</a></li>
+         <li><strong>Web-based Installation</strong>
+           <ul>
+             <li><a href="./install_pe_mono.html">Installing PE: Monolithic</a></li>
+             <li><a href="./install_pe_split.html">Installing PE: Split</a></li>
+           </ul>
+         <li><strong>Installing PE Agents</strong>
+           <ul>
+             <li><a href="./install_agents.html">Installing PE Agents: *nix</a></li>
+             <li><a href="./install_windows.html">Installing PE Agents: Windows</a></li>
+             <li><a href="./install_osx.html">Installing PE Agents: Mac OS X</a></li>
+             <li><strong>Network Device Agents</strong>
+                 <ul>
+                   <li><a href="./install_eos.html">Installing PE Agents: Arista EOS</a></li>
+                   <li><a href="./install_nxos.html">Installing PE Agents: Cisco NS-OX EOS</a></li>
+                   <li><a href="./install_iosxr.html">Intalling PE Agents: Cisco IOS-XR</a></li>
+                   <li><a href="./install_cumulus.html">Intalling PE Agents: Cumulus Linux</a></li>
+                 </ul>
+           </ul>
+         <li><strong>Large Environment Installation</strong>
+           <ul>
+             <li><a href="./install_multimaster.html">Compile Master Installation</a></li>
+             <li><a href="./install_add_activemq.html">Additional ActiveMQ Hub and Spoke Installation</a></li>
+             <li><a href="./install_lei_upgrade.html">Upgrading Large Environment Installations</a></li>
+           </ul>
+         <li><strong>Answer File Installation</strong>
+           <ul>
+             <li><a href="./install_automated.html">Installing with an Answer File</a></li>
+             <li><a href="./install_complete_answer_file_reference.html">Complete Answer File Reference</a></li>
+             <li><a href="./install_mono_answers.html">Monolithic Install Answer File Reference</a></li>
+             <li><strong>Split Install Answer File Reference</strong>
+                 <ul>
+                   <li><a href="./install_split_console_answers.html">Console Answer File Reference</a></li>
+                   <li><a href="./install_split_master_answers.html">Puppet Master Answer File Reference</a></li>
+                   <li><a href="./install_split_puppetdb_answers.html">PuppetDB Answer File Reference</a></li>
+                 </ul>
+                </ul>
+          <li><a href="./install_pe_client_tools.html">Installing PE Client Tools</a></li>
+          <li><a href="./install_uninstalling.html">Uninstalling</a></li>
+          <li><a href="./install_what_and_where.html">What Gets Installed Where?</a></li>
+          <li><strong>PE and External PostgreSQL</strong>
+             <ul>
+               <li><a href="./install_ssl_postgresql.html">SSL for PE and External PostgreSQL</a></li>
+               <li><a href="./install_external_postgresql.html">PE and External PostgreSQL without Root Access</a></li>
+              </ul>
+          </li>
+      </ul>
+  <li><strong>Upgrading to PE 2015.3</strong>
+    <ul>
+      <li><a href="./migrate_pe_catalog_preview.html">Preparing for Migration/Upgrade to PE 2015.3</a></li>
+      <li><a href="./install_upgrading.html">Upgrading PE Components</a></li>
+      <li><a href="./install_upgrading_agents.html">Upgrading Puppet Agents</a></li>
+      <li><a href="./install_upgrading_notes.html">Upgrading: Important Notes</a></li>
+      <li><a href="./install_upgrading_path_changes.html">Upgrading: Major Path Changes in PE 2015.3</a></li>
+    </ul>
+   </li>
+  <li><strong>Configuring PE</strong>
+    <ul>
+      <li><a href="./config_intro.html">Your PE Infrastructure</a></li>
+      <li><a href="./config_puppetserver.html">Tuning Puppet Server</a></li>
+      <li><a href="./puppet_server_config_files.html">Puppet Server Config Files</a></li>
+      <li><a href="./config_nc.html">Tuning Node Classifier</a></li>
+      <li><a href="./console_config.html">Tuning the Console</a></li>
+      <li><a href="./config_puppetdb.html">Tuning PuppetDB</a></li>
+      <li><a href="./config_orchestration.html">Tuning Orchestration</a></li>
+      <li><a href="./config_java_args.html">Java Arguments For PE</a></li>
+      <li><a href="./config_hocon.html">Writing Configuration Files</a></li>
+    </ul>
+  </li>
+  <li><strong>Monitoring Your PE Configuration</strong>
+         <ul>
+           <li><a href="./CM_overview.html">Monitor and Analyze Infrastructure State</a></li>
+           <li><a href="./CM_events.html">Analyze Changes Across Puppet Runs</a></li>
+           <li><a href="./CM_reports.html">Infrastructure Reports</a></li>
+           <li><a href="./puppet_server_metrics.html">Monitoring Puppet Server</a></li>
+           <li><a href="./status_api.html">Monitoring PE Services</a></li>
+    </ul>
+  </li>
+  <li><strong>Managing Nodes</strong>
+              <ul>
+                 <li><a href="./console_cert_mgmt.html">Managing Node Requests</a></li>
+                 <li><a href="./console_classes_groups_running_puppet.html">Running Puppet on a Node</a></li>
+                 <li><a href="./console_classes_groups_getting_started.html">Getting Started With Classification</a></li>
+                 <li><a href="./console_classes_groups.html">Grouping and Classifying Nodes</a></li>
+                 <li><a href="./nodes_viewing.html">Viewing Node-Specific Information</a></li>
+                 <li><a href="./console_classes_groups_making_changes.html">Making Changes in the Node Classifier</a></li>
+                 <li><a href="./node_deactivation.html">Removing Nodes From PE</a></li>
+                 <li><a href="./console_classes_groups_preconfigured_groups.html">Preconfigured Node Groups</a></li>
+                 <li><a href="./console_classes_groups_inheritance.html">How Does Inheritance Work?</a></li>
+                 <li><a href="./console_classes_groups_environment_override.html">Working With Environments</a></li>
+                 <li><strong>Node Classifier Service API</strong>
+               <ul>
+                  <li><a href="./nc_index.html">Endpoints</a></li>
+                  <li><a href="./nc_forming_requests.html">Forming Node Classifier Requests</a></li>
+                  <li><a href="./nc_groups.html">Groups</a></li>
+                  <li><a href="./nc_classes.html">Classes</a></li>
+                  <li><a href="./nc_classification.html">Classification</a></li>
+                  <li><a href="./nc_environments.html">Environments</a></li>
+                  <li><a href="./nc_nodes.html">Nodes</a></li>
+                  <li><a href="./nc_rules.html">Rules</a></li>
+                  <li><a href="./nc_import-hierarchy.html">Importing Node Classifier Hierarchy</a></li>
+                  <li><a href="./nc_last_class_update.html">Last Class</a></li>
+                  <li><a href="./nc_nodes.html">Node History</a></li>
+                  <li><a href="./nc_update_classes.html">Updating Node Classifier Classes</a></li>
+                  <li><a href="./nc_validate.html">Validating Node Classifier Endpoints</a></li>
+                  <li><a href="./nc_errors.html">Node Classifier Errors</a></li>
+               </ul>
+          </ul>
+        </li>
+        <li><strong>Managing Access to PE</strong>
+               <ul>
+                  <li><a href="./console_accessing.html">Accessing the Console</a></li>
+                  <li><a href="./rbac_intro.html">Working with Role-Based Access Control</a></li>
+                  <li><a href="./rbac_ldap.html">Connecting PE with External Directory Services</a></li>
+                  <li><a href="./rbac_permissions.html">About RBAC Permissions</a></li>
+                  <li><a href="./rbac_user_roles.html">Creating and Managing Users and User Roles</a></li>
+                  <li><a href="./rbac_token_auth.html">Token-Based Authentication</a></li>
+                  <li><a href="./deploy_nonroot-agent.html">Running Agents Without Root Privileges</a></li>
+                  <li><strong>RBAC Service API</strong>
+                  <ul>
+                    <li><a href="./rbac_serviceindex.html">Endpoints</a></li>
+                    <li><a href="./rbac_forming_requests.html">Forming RBAC Requests</a></li>
+                    <li><a href="./rbac_users.html">Users</a></li>
+                    <li><a href="./rbac_usergroups.html">User Groups</a></li>
+                    <li><a href="./rbac_roles.html">Roles</a></li>
+                    <li><a href="./rbac_permissionsref.html">Permissions</a></li>
+                    <li><a href="./rbac_token.html">Authentication Tokens</a></li>
+                    <li><a href="./rbac_dsref.html">Directory Service</a></li>
+                    <li><a href="./rbac_passwords.html">Passwords</a></li>
+                    <li><a href="./rbac_serviceerrors.html">Errors</a></li>
+                    <li><a href="./rbac_config.html">Configuration Options</a></li>
+                 </ul>
+                 <li><strong>Activity Service API</strong>
+              <ul>
+                  <li><a href="./rbac_activityapis.html">Endpoints</a></li>
+                  <li><a href="./rbac_activityreporting.html">Activity Reporting</a></li>
+               </ul>
+               </li>
+               </ul>
+      </li>
+  <li><strong>Orchestrating Applications</strong>
+    <ul>
+      <li><a href="./app_orchestration_overview.html">Application Orchestration: Overview</a></li>
+      <li><strong>Application Orchestration: Key Concepts and Workflow</strong>
+       <ul>
+         <li><a href="./app_orchestration_workflow.html">Application Orchestration Workflow</a></li>
+         <li><a href="./app_orchestration_app_definition.html">Creating Application Definitions</a></li>
+         <li><a href="./app_orchestration_declare_instance.html">Declaring Application Instances</a></li>
+         <li><a href="./app_orchestration_produce_consume.html">Producing and Consuming Service Resources</a></li>
+         <li><a href="./app_orchestration_writing_service_resources.html">Writing Service Resources</a></li>
+         <li><a href="./app_orchestration_availability_tests.html">Using Availability Tests</a></li>
+        </ul>
+      <li><strong>Puppet Orchestrator</strong>
+       <ul>
+        <li><a href="./orchestrator_intro.html">Puppet Orchestrator Introduction</a></li>
+        <li><a href="./orchestrator_install.html">Installing Puppet Orchestrator</a></li>
+        <li><a href="./orchestrator_job_run.html">Running Jobs</a></li>
+        <li><a href="./orchestrator_job_status_view.html">Viewing Jobs</a></li>
+        <li><a href="./orchestrator_app.html">Reviewing Applications</a></li>
+       </ul>
+    </ul>
+  </li>
+  <li><strong>Managing and Deploying Puppet Code</strong>
+      <ul>
+       <li><a href="./cmgmt_managing_code.html">Managing and Deploying Puppet Code</a></li>
+       <li><a href="./cmgmt_control_repo.html">Setting Up a Control Repository</a></li>
+       <li><a href="./cmgmt_puppetfile.html">Managing Modules with Puppetfiles</a></li>
+     <li><strong>Code Manager</strong>
+        <ul>
+         <li><a href="./code_mgr.html">Managing Code with Code Manager</a></li>
+         <li><a href="./code_mgr_config.html">Configuring Code Manager</a></li>
+         <li><a href="./code_mgr_upgrade.html">Setting Up Code Manager with a PE Upgrade</a></li>
+         <li><a href="./code_mgr_custom.html">Customizing Code Manager Configuration</a></li>
+         <li><a href="./code_mgr_webhook.html">Triggering Code Manager with a Webhook</a></li>
+         <li><a href="./code_mgr_scripts.html">Triggering Code Manager with Custom Scripts</a></li>
+        </ul>
+      <li><strong>r10k</strong>
+         <ul>
+          <li><a href="./r10k.html">Managing Code with r10k</a></li>
+          <li><a href="./r10k_config.html">Configuring r10k</a></li>
+          <li><a href="./r10k_custom.html">Customizing r10k Configuration</a></li>
+          <li><a href="./r10k_run.html">Deploying Environments with r10k</a></li>
+          <li><a href="./r10k_reference.html">r10k Subcommand Reference</a></li>
+         </ul>
+      <li><a href="./cmgmt_filesync.html">About File Sync</a></li>
+      <li><a href="./cmgmt_filesync_api.html">File Sync API</a></li>
+    </ul>
+  </li>
+  <li><strong>Provisioning With Razor</strong>
+    <ul>
+      <li><a href="./razor_intro.html">Bare-Metal Provisioning with Razor</a></li>
+      <li><a href="./razor_prereqs.html">Setting Up an Environment for Razor</a></li>
+      <li><a href="./razor_install.html">Installing Razor</a></li>
+      <li><a href="./razor_upgrade.html">Upgrading Razor</a></li>
+      <li><a href="./razor_objects.html">Razor Objects for Provisioning</a></li>
+      <li><a href="./razor_brownfield.html">Provisioning in a Brownfield Environment</a></li>
+      <li><a href="./razor_using.html">Provision Nodes - How To</a></li>
+      <ul>
+      <li><a href="./razor_hooks_hostnames.html">Assigning Dynamic Hostnames Using Hooks</a></li>
+      </ul>
+      <li><a href="./razor_windows_install.html">Setting Up and Installing Windows</a></li>
+      <li><a href="./razor_reference.html">Razor Command Reference</a></li>
+      <li><a href="./razor_brokertypes.html">Writing Broker Types</a></li>
+      <li><a href="./razor_secure_apis.html">Making Razor API Calls Secure</a></li>
+    </ul>
+  </li>
+  <li><strong>SSL and Certificates</strong>
+    <ul>
+     <li><strong>Complete PE Cert Regeneration</strong>
+        <ul>
+          <li><a href="./trouble_regenerate_certs_split.html">Regenerating Certificates: Split Deployments</a></li>
+          <li><a href="./trouble_regenerate_certs_monolithic.html">Regenerating Certificates: Monolithic Deployments</a></li>
+        </ul>
+     <li><strong>Individual PE Component Cert Regeneration</strong>
+        <ul>
+           <li><a href="./regenerate_certs_master.html">Regenerating Certs for the Puppet Master</a></li>
+           <li><a href="./regenerate_certs_puppetdb.html">Regenerating Certs for PuppetDB</a></li>
+           <li><a href="./regenerate_certs_console.html">Regenerating Certs for the PE Console</a></li>
+         </ul>
+     <li><a href="./agent_cert_regen.html">Regenerating a Puppet Agent Certificate</a></li>
+     <li><a href="./external_ca.html">Using an External Certificate Authority with PE</a></li>
+     <li><a href="./custom_console_cert.html">Configuring the PE Console to Use a Custom Certificate</a></li>
+     <li><a href="./trouble_dh_generate.html">Custom Diffie-Hellman Param File Generation</a></li>
+     <li><a href="./install_ssl_postgresql.html">SSL for PE and External PostgreSQL</a></li>
+    </ul>
+  </li>
+  <li><strong>Understanding Puppet Core</strong>
+    <ul>
+      <li><a href="./puppet_assign_configurations.html">Assigning Configurations to Nodes</a></li>
+    </ul>
+  </li>
+  <li><strong>APIs</strong>
+   <ul>
+      <li><a href="./api_index.html">Index of APIs</a></li>
+    </ul>
+  <li><strong>Managing PE MCollective</strong>
+    <ul>
+      <li><a href="./orchestration_overview.html">Overview</a></li>
+      <li><a href="./orchestration_invoke_cli.html">Invoking Actions</a></li>
+      <li><a href="./orchestration_puppet.html">Controlling Puppet</a></li>
+      <li><a href="./orchestration_actions.html">List of Built-In Actions</a></li>
+      <li><a href="./orchestration_adding_actions.html">Adding New Actions</a></li>
+      <li><a href="./orchestration_config.html">Configuring Orchestration</a></li>
+    </ul>
+  </li>
+  <li><strong>Maintenance</strong>
+    <ul>
+      <li><a href="./maintain_console-db.html">PE Database Maintenance</a></li>
+      <li><a href="./maintain_backup_restore.html">Back Up and Restore PE</a></li>
+    </ul>
+  </li>
+  <li><strong>Troubleshooting</strong>
+    <ul>
+     <li><a href="./trouble_install.html">Troubleshooting the Installer</a></li>
+     <li><a href="./trouble_comms.html">Troubleshooting Connections and Communications</a></li>
+     <li><a href="./trouble_console-db.html">Troubleshooting the Database</a></li>
+     <li><a href="./trouble_puppet.html">Troubleshooting the Puppet Core</a></li>
+     <li><a href="./trouble_orchestration.html">Troubleshooting Orchestration</a></li>
+     <li><a href="./trouble_windows.html">Troubleshooting Windows</a></li>
+    </ul>
+  </li>
+  <li><strong>Appendix</strong>
+    <ul>
+       <li><a href="./release_notes_archive.html">Archived Release Notes</a></li>
+       <li><a href="./compliance_alt.html">Compliance Alternate Workflow</a></li>
+    </ul>
+  </li>
+</ul>
+
+              </div>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+
+  <footer id="site-footer">
+      <div class="footer-wrapper">
+          <div class="footer-col footer-col-left">
+              <ul>
+                  <h4>Resources</h4>
+                  <li><a href="https://puppetlabs.com/download-puppet-enterprise"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Download']);">Free Download</a></li>
+                  <li><a href="https://puppetlabs.com/blog"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Blog']);">Blog</a></li>
+                  <li><a href="https://puppetlabs.com/security"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Security']);">Security</a></li>
+                  <li><a href="https://puppetlabs.com/sitemap"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Site Map']);">Site Map</a></li>
+                  <li><a href="http://feeds.feedburner.com/PuppetLabs"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'RSS']);"
+                         target="_blank">RSS</a></li>
+              </ul>
+              <ul>
+                  <h4>Support</h4>
+                  <li><a href="https://puppetlabs.com/services/customer-support"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Support']);">Customer Support</a></li>
+                  <li><a href="https://tickets.puppetlabs.com"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Tickets']);" target="_blank">Bug Tracker</a></li>
+                  <li><a href="http://ask.puppetlabs.com"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Ask']);" target="_blank">Puppet Ask</a></li>
+                  <li><a href="http://groups.google.com/group/puppet-users?pli=1"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Users']);" target="_blank">Puppet Users</a></li>
+                  <li><a href="https://github.com/puppetlabs"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'GitHub']);" target="_blank">GitHub</a></li>
+              </ul>
+              <ul>
+                  <h4>Company</h4>
+                  <li><a href="https://puppetlabs.com/about"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'About Us']);">About Us</a></li>
+                  <li><a href="https://puppetlabs.com/about/careers"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Careers']);">Careers</a></li>
+                  <li><a href="https://puppetlabs.com/licensing"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Licensing']);">Licensing</a></li>
+                  <li><a href="https://puppetlabs.com/privacy"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Privacy Policy']);">Privacy Policy</a></li>
+                  <li><a href="https://puppetlabs.com/terms"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Terms of Use']);">Terms of Use</a></li>
+              </ul>
+              <ul>
+                  <h4>Connect</h4>
+                  <li><a href="https://puppetlabs.com/contact"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Contact Us']);">Contact Us</a></li>
+                  <li><a href="https://puppetlabs.com/contact-sales"  onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Contact Sales']);">Contact Sales</a></li>
+                  <li><a href="https://twitter.com/puppetlabs" target="_blank" onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Twitter']);">Twitter</a></li>
+                  <li><a href="https://www.facebook.com/puppetlabs" target="_blank" onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Facebook']);">Facebook</a></li>
+                  <li><a href="http://www.linkedin.com/company/621389" target="_blank" onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'LinkedIn']);">LinkedIn</a></li>
+                  <li><a href="https://plus.google.com/112682055028218091774" target="_blank" onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'Google+']);">Google+</a></li>
+                  <li><a href="http://webchat.freenode.net/?channels=puppet" target="_blank" onclick="_gaq.push(['_trackEvent', 'Footer', 'click', 'IRC']);">IRC</a></li>
+              </ul>
+          </div>
+          <div class="footer-col footer-col-right">
+              <div class="footer-col-right-container">
+                  <div class="title">Get Puppet Labs News</div>
+                  <div class="email-subscription">
+                      <div id="email-subscription-container">
+                          <form class="lpeRegForm formNotEmpty" method="post" enctype="application/x-www-form-urlencoded" action="https://app-sjh.marketo.com/index.php/leadCapture/save" id="mktForm_1047" name="mktForm_1047">
+                              <input class='mktFormText mktFormEmail mktFReq' name="Email" id="Email" type='email' value=""  placeholder="enter your email address" maxlength='255' tabIndex='1' />
+                              <input class='mktFormHidden' name="Form_Name__c" id="Form_Name__c" type='hidden' value="Newsletter" />
+                              <input class='mktFormHidden' name="Current_Form_Name__c" id="Current_Form_Name__c" type='hidden' value="Newsletter" />
+                              <input class='mktFormHidden' name="Original_Campaign_ID__c" id="Original_Campaign_ID__c" type='hidden' value="701G0000000F68K" />
+                              <input class='mktFormHidden' name="campaign_ID__c" id="campaign_ID__c" type='hidden' value="701G0000000F68K" />
+                              <input class='mktFormHidden' name="Current_Lead_Source__c" id="Current_Lead_Source__c" type='hidden' value="website-corporate" />
+                              <input class='mktFormHidden' name="LeadSource" id="LeadSource" type='hidden' value="website-corporate" />
+                              <input class='mktFormHidden' name="Custom_Campaign__c" id="Custom_Campaign__c" type='hidden' value="null" />
+                              <input class='mktFormHidden' name="Current_Custom_Campaign__c" id="Current_Custom_Campaign__c" type='hidden' value="null" />
+                              <input class='mktFormHidden' name="honeypot" id="honeypot" type='hidden' value="null" />
+                              <input id='mktFrmSubmit' type='submit' value='&#xf0a9;' name='submitButton' onclick='formSubmit(document.getElementById("mktForm_1047")); return false;' />
+                              <input style='display: none;' id='mktFrmReset' type='reset' value='Clear' name='resetButton' onclick='formReset(document.getElementById("mktForm_1047")); return false;' />
+                              <span style="display:none;"><input type="text" name="_marketo_comments" value="" /></span>
+                              <input type="hidden" name="lpId" value="-1" />
+                              <input type="hidden" name="subId" value="100" />
+                              <input type="hidden" name="munchkinId" value="307-QLA-991" />
+                              <input type="hidden" name="kw" value="" />
+                              <input type="hidden" name="cr" value="" />
+                              <input type="hidden" name="searchstr" value="" />
+                              <input type="hidden" name="lpurl" value="http://info.puppetlabs.com/newslettersubscribe.html?cr={creative}&kw={keyword}" />
+                              <input type="hidden" name="formid" value="1047" />
+                              <input type="hidden" name="returnURL" value="http://puppetlabs.com" />
+                              <input type="hidden" name="retURL" value="http://puppetlabs.com/misc/subscription-thank-you" />
+                              <input type="hidden" name="returnLPId" value="-1" />
+                              <input type="hidden" name="_mkt_disp" value="return" />
+                              <input type="hidden" name="_mkt_trk" value="" />
+                          </form>
+                          <script type="text/javascript" src="//puppetlabs.com/sites/default/files/mktFormSupport.js"></script>
+                          <script type="text/javascript">
+                              function formSubmit(elt) {
+                                  var submit = Mkto.formSubmit(elt) ? true : false;
+                                  if (submit) {
+                                      jQuery(elt).find('#mktFrmSubmit').attr('value', "");
+                                  }
+                                  return submit;
+                              }
+                              function formReset(elt) {
+                                  return Mkto.formReset(elt);
+                              }
+                          </script>
+                      </div>
+                      <p>
+                          &copy; 2016 <a href="https://puppetlabs.com/about">Puppet Labs</a>
+                          <br>
+                          <a href="tel:877-575-9775" class="tel">877-575-9775</a>
+                      </p>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </footer>
+
+  <script type="text/javascript">
+      jQuery(document).on('ready', function() {
+
+          // Make sure active link in menu doesn't have a hilighted chevron
+          jQuery('.disabled-nav-link').parent().addClass('selected');
+      });
+  </script>
+
+    <style type="text/css">h1, h2, .btn { visibility : visible; }</style>
+
+
+<!-- BEGIN: MARKETO TRACKING -->
+<!-- Per Alanna, this must be directly before the closing body tag. -->
+    <script src="https://munchkin.marketo.net/munchkin.js" type="text/javascript"></script> <script>mktoMunchkin("307-QLA-991");</script>
+ <!-- END: MARKETO TRACKING -->
+    <script type="text/javascript" src="/files/javascripts/prism.js"></script>
+  </body>
+</html>
+
+
+
