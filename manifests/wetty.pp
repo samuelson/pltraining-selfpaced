@@ -16,9 +16,8 @@ class selfpaced::wetty (
   }
 
   vcsrepo { $wetty_install_dir:
-    source   => 'https://github.com/samuelson/wetty.git',
+    source   => 'https://github.com/puppetlabs/wetty.git',
     provider => 'git',
-    revision => 'minimal',
   }
 
   exec { 'npm install -g':
