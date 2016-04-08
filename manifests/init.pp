@@ -32,7 +32,7 @@ class selfpaced (
   }
 
   include nginx
-  nginx::resource::vhost { 'selfpaced.puppetlabs.com':
+  nginx::resource::vhost { 'try.puppet.com':
     proxy    => 'http://127.0.0.1:3000'
   }
   nginx::resource::vhost { 'localhost':
