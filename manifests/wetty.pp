@@ -16,6 +16,7 @@ class selfpaced::wetty (
   }
 
   vcsrepo { $wetty_install_dir:
+    ensure   => present,
     source   => 'https://github.com/puppetlabs/wetty.git',
     provider => 'git',
   }
