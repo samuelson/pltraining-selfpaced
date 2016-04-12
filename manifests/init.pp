@@ -57,12 +57,11 @@ class selfpaced (
   include selfpaced::webpage
   include selfpaced::squid
 
-  firewall { '000 reject outbound SSH, SMTP, and BTC traffic on docker0':
+  firewall { '000 accept outbound 80, 443, and 8140 traffic on docker0':
     iniface     => 'docker0',
     chain       => 'FORWARD',
     proto       => 'tcp',
-    dport       => ['22','25','8333'],
+    dport       => ['! 80','! 443','! 8140'],
     action      => 'reject',
   }
-
 }
