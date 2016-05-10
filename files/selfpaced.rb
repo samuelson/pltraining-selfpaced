@@ -59,7 +59,7 @@ def classify(username, groups=[''])
 end
 
 words = File.readlines("/usr/local/share/words/places.txt").each { |l| l.chomp! }
-container_name = words[rand(words.length - 1)] + "_" + words[rand(words.length - 1)]
+container_name = words[rand(words.length - 1)] + "-" + words[rand(words.length - 1)]
 
 case ARGV[0]
 when "autoloading","classes","cli_intro","code","facter_intro","hiera","hiera_intro","infrastructure","inheritance","module","parser","puppet_lint","relationships","resources","smoke_test","testing","troubleshooting","unit_test","validating","get_hiera1","get_hiera2","get_hiera3","get_hiera4","get_hiera5"
