@@ -32,9 +32,6 @@ class selfpaced (
 
   include nginx
   nginx::resource::vhost { 'try.puppet.com':
-    proxy    => 'http://127.0.0.1:3000'
-  }
-  nginx::resource::vhost { 'localhost':
     ssl_port         => '443',
     proxy            => 'http://127.0.0.1:3000',
     proxy_set_header => [
