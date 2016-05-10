@@ -1,5 +1,5 @@
 class selfpaced::webpage (
-  $docroot = $selpaced::params::docroot
+  $docroot = $selfpaced::params::docroot
 ) inherits selfpaced::params {
 
   file {$docroot:
