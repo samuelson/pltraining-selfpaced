@@ -1,6 +1,6 @@
 {
   "name": "pltraining-selfpaced",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Josh Samuelson",
   "summary": "Containerized environment for self-paced courses",
   "license": "MIT",
