@@ -17,7 +17,7 @@ ENVIRONMENTS = "#{CODEDIR}/environments"
 USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppet.com'
 PUPPETCODE   =  OPTIONS['PUPPETCODE'] || '/root/puppetcode'
 
-MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || `hostname`.strip
+MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || `hostname -f`.strip
 
 AUTH_INFO = OPTIONS['AUTH_INFO'] || {
   "ca_certificate_path" => "#{CONFDIR}/ssl/ca/ca_crt.pem",
