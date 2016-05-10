@@ -39,7 +39,7 @@ class selfpaced (
       'Connection "Upgrade"',
     ],
     ssl              => true,
-    ssl_cert         => '/etc/ssl/try.puppet.com.pem',
+    ssl_cert         => '/etc/ssl/try.puppet.com.crt',
     ssl_key          => '/etc/ssl/try.puppet.com.key',
   }
   package { 'puppetclassify':
