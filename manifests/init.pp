@@ -1,7 +1,6 @@
 class selfpaced (
   $wetty_install_dir = '/root/wetty'
 ) {
-  include nodejs
   include docker
   docker::image {'maci0/systemd':}
   docker::image { 'agent':
@@ -39,8 +38,8 @@ class selfpaced (
     ssl_port   => '443',
     proxy    => 'http://127.0.0.1:3000',
     ssl      => true,
-    ssl_cert => '/etc/puppetlabs/puppet/ssl/certs/master.puppetlabs.vm.pem',
-    ssl_key  => '/etc/puppetlabs/puppet/ssl/private_keys/master.puppetlabs.vm.pem',
+    ssl_cert => '/etc/ssl/try.puppet.com.pem',
+    ssl_key  => '/etc/ssl/try.puppet.com.key',
   }
   package { 'puppetclassify':
     ensure   => present,
@@ -53,9 +52,12 @@ class selfpaced (
     source   => 'https://github.com/puppetlabs/pltraining-course_selector'
   }
 
-  include selfpaced::wetty
+  class { 'abalone':
+    port    => '3000',
+    command => 'selfpaced',
+    method  => 'command',
+  }
   include selfpaced::webpage
-  include selfpaced::squid
 
   firewall { '000 accept outbound 80, 443, and 8140 traffic on docker0':
     iniface     => 'docker0',
