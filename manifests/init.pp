@@ -58,7 +58,6 @@ class selfpaced (
     method  => 'command',
   }
   include selfpaced::webpage
-  include selfpaced::squid
 
   firewall { '000 accept outbound 80, 443, and 8140 traffic on docker0':
     iniface     => 'docker0',
