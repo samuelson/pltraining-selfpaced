@@ -17,7 +17,7 @@ CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
 CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
-USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'selfpaced.puppetlabs.com'
+USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppet.com'
 PUPPETCODE   =  OPTIONS['PUPPETCODE'] || '/root/puppetcode'
 
 MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || `hostname`.strip
