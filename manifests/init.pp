@@ -55,6 +55,7 @@ class selfpaced (
   class { 'abalone':
     port    => '3000',
     command => 'selfpaced',
+    method  => 'command',
   }
   include selfpaced::webpage
   include selfpaced::squid
