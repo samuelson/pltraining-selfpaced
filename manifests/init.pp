@@ -32,14 +32,15 @@ class selfpaced (
 
   include nginx
   nginx::resource::vhost { 'try.puppet.com':
-    proxy    => 'http://127.0.0.1:3000'
-  }
-  nginx::resource::vhost { 'localhost':
-    ssl_port   => '443',
-    proxy    => 'http://127.0.0.1:3000',
-    ssl      => true,
-    ssl_cert => '/etc/ssl/try.puppet.com.pem',
-    ssl_key  => '/etc/ssl/try.puppet.com.key',
+    ssl_port         => '443',
+    proxy            => 'http://127.0.0.1:3000',
+    proxy_set_header => [
+      'Upgrade $http_upgrade',
+      'Connection "Upgrade"',
+    ],
+    ssl              => true,
+    ssl_cert         => '/etc/ssl/try.puppet.com.crt',
+    ssl_key          => '/etc/ssl/try.puppet.com.key',
   }
   package { 'puppetclassify':
     ensure   => present,
