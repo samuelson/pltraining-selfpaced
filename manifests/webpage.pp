@@ -10,7 +10,7 @@ class selfpaced::webpage (
     source  => 'puppet:///modules/selfpaced/index.html',
     require => File[$docroot], 
   }
-  file {"${docroot}/var/www/docs.html":
+  file {"${docroot}/docs.html":
     ensure => file,
     source => 'puppet:///modules/selfpaced/docs.html',
     require => File[$docroot], 
