@@ -20,7 +20,7 @@ ENVIRONMENTS = "#{CODEDIR}/environments"
 USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppet.com'
 PUPPETCODE   =  OPTIONS['PUPPETCODE'] || '/root/puppetcode'
 
-MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || `hostname`.strip
+MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || `hostname -f`.strip
 
 DOCKER_GROUP    = OPTIONS['DOCKER_GROUP'] || 'docker'
 DOCKER_IP       = OPTIONS['DOCKER_IP'] || `facter ipaddress_docker0`.strip
