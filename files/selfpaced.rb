@@ -35,14 +35,14 @@ CLASSIFIER_URL = OPTIONS['CLASSIFIER_URL'] || "http://#{MASTER_HOSTNAME}:4433/cl
 
 TIMEOUT = OPTIONS['TIMEOUT'] || "300"
 
-def classify(username, groups=[''])
+def classify(environment, hostname, groups=[''])
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
-  certname = "#{username}.#{USERSUFFIX}"
+  certname = "#{hostname}.#{USERSUFFIX}"
   groupstr = groups.join('\,')
 
   group_hash = {
     'name'               => certname,
-    'environment'        => username,
+    'environment'        => environment,
     'environment_trumps' => true,
     'parent'             => '00000000-0000-4000-8000-000000000000',
     'classes'            => {}
@@ -55,11 +55,12 @@ def classify(username, groups=[''])
     raise "Could not create node group #{certname}: #{e.message}"
   end
 
-  "Created node group #{certname} assigned to environment #{username}"
+  "Created node group #{certname} assigned to environment #{environment}"
 end
 
 words = File.readlines("/usr/local/share/words/places.txt").each { |l| l.chomp! }
 container_name = words[rand(words.length - 1)] + "-" + words[rand(words.length - 1)]
+environment_name = container_name.gsub('-','_')
 
 case ARGV[0]
 when "autoloading","classes","cli_intro","code","facter_intro","hiera","hiera_intro","infrastructure","inheritance","module","parser","puppet_lint","relationships","resources","smoke_test","testing","troubleshooting","unit_test","validating","get_hiera1","get_hiera2","get_hiera3","get_hiera4","get_hiera5"
@@ -69,11 +70,11 @@ else
 end
 
 # Create environment
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{container_name}/modules"
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{container_name}/manifests"
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
 
 # Create site.pp with include course_selector::course::${course}
-File.open("#{ENVIRONMENTS}/#{container_name}/manifests/site.pp", 'w') { |file|
+File.open("#{ENVIRONMENTS}/#{environment_name}/manifests/site.pp", 'w') { |file|
   file.write "node default {\n"
   file.write "  include course_selector::course::#{course}\n"
   file.write "}\n"
@@ -85,11 +86,11 @@ puts "-------------------------------------------"
 
 
 # Create node group
-classify(container_name)
+classify(environment_name, container_name)
 
 
 # Run container
-container = %x{docker run --volume #{ENVIRONMENTS}/#{container_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
+container = %x{docker run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
 
 # Set up shutdown timeout
 pid = Process.fork do 
