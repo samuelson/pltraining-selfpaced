@@ -38,15 +38,15 @@ class selfpaced (
     ssl_key                => '/etc/ssl/try.puppet.com.key',
     use_default_location   => false,
     locations              => {
-      '/sandbox/'          => {
-        proxy_read_timeout => '1h',
+      '/sandbox/' => {
+        proxy_read_timeout    => '1h',
         proxy_connect_timeout => '1h',
-        proxy              => 'http://127.0.0.1:3000',
-        proxy_set_header => [
+        proxy                 => 'http://127.0.0.1:3000',
+        proxy_set_header      => [
           'Upgrade $http_upgrade',
           'Connection "Upgrade"',
         ],
-        rewrite_rules     => [
+        rewrite_rules         => [
           '/sandbox(.*) /$1  break'
         ]
       },
