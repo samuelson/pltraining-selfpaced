@@ -68,6 +68,7 @@ class selfpaced (
     port    => '3000',
     command => 'selfpaced',
     method  => 'command',
+    params  => ['course'],
   }
   include selfpaced::webpage
 
