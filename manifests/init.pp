@@ -63,7 +63,8 @@ class selfpaced (
   vcsrepo { '/etc/puppetlabs/code/modules/course_selector':
     ensure   => latest,
     provider => 'git',
-    source   => 'https://github.com/puppetlabs/pltraining-course_selector'
+    source   => 'https://github.com/puppetlabs/pltraining-course_selector',
+    force    => true,
   }
 
   class { 'abalone':
