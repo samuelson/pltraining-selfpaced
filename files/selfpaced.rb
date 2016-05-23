@@ -103,7 +103,7 @@ container = %x{docker run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETC
 # Set up shutdown timeout
 pid = Process.fork do 
   sleep TIMEOUT.to_i
-  exec("docker exec -dt #{container} sh -c 'shutdown now'")
+  exec("docker rm -f #{container}")
 end
 Process.detach(pid)
 
