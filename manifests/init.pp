@@ -1,6 +1,6 @@
 class selfpaced (
-  $wetty_install_dir = '/root/wetty'
-) {
+  $docroot = selfpaced::params::docroot
+) inherits selfpaced::params {
   include docker
   docker::image {'maci0/systemd':}
   docker::image { 'agent':
@@ -51,7 +51,7 @@ class selfpaced (
         ]
       },
       '/' => {
-        www_root => '/var/www'
+        www_root => $docroot
       }
     }
   }
