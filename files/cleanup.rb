@@ -70,6 +70,16 @@ def remove_environment(username)
   "Environment #{username} removed"
 end
 
+def remove_container(username)
+  begin
+    %x{docker rm -f #{username}}
+  rescue => e
+    raise "Error removing container #{username}: #{e.message}"
+  end
+
+  "Container #{username} removed"
+end
+
 # Notify user of shutdown
 
 puts
@@ -85,7 +95,7 @@ puts "Cleaning up code directory"
 remove_environment(CONTAINER_NAME)
 
 # Remove certificate
-puts 
+puts
 puts "Removing Node Certificate"
 remove_certificate(CONTAINER_NAME)
 
@@ -93,6 +103,11 @@ remove_certificate(CONTAINER_NAME)
 puts
 puts "Removing Node Group"
 remove_node_group(CONTAINER_NAME)
+
+# Delete container
+puts
+puts "Removing container"
+remove_container(CONTAINER_NAME)
 
 # Notify User
 
