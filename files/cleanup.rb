@@ -57,9 +57,11 @@ end
 
 def remove_environment(username)
   begin
-    environment_path = "#{ENVIRONMENTS}/#{username}"
+    environment_path = "#{ENVIRONMENTS}/#{username}".gsub("-","_")
     if File.exist?("#{environment_path}") then
       %x{rm -rf #{environment_path}}
+    else
+      raise "Environment not found"
     end
   rescue => e
     raise "Error removing environment #{username}: #{e.message}"
