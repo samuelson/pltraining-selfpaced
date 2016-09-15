@@ -77,9 +77,29 @@ else
   course = "default"
 end
 
-# Create environment
+
+# Print a little explaination of what's happening
+puts "Setting up self paced eLearning environment"
+puts "-------------------------------------------"
+
+
+# Run container
+<% if $container_server == 'lxd' { -%> 
+%x{lxc launch images:centos/7/amd64 #{container_name}}
+%x{ln -s  var/lib/lxd/containers/#{container_name}/rootfs/#{PUPPETCODE} #{ENVIRONMENTS}/#{environment_name}}
+# Create environment after lxc container
 FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
 FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
+<% } else { -%>
+# Create environment before docker container
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
+%x{docker run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
+<% } -%>
+
+
+# Create node group
+classify(environment_name, container_name)
 
 # Create site.pp with include course_selector::course::${course}
 File.open("#{ENVIRONMENTS}/#{environment_name}/manifests/site.pp", 'w') { |file|
@@ -88,22 +108,11 @@ File.open("#{ENVIRONMENTS}/#{environment_name}/manifests/site.pp", 'w') { |file|
   file.write "}\n"
 }
 
-# Print a little explaination of what's happening
-puts "Setting up self paced eLearning environment"
-puts "-------------------------------------------"
-
-
-# Create node group
-classify(environment_name, container_name)
-
-
-# Run container
-container = %x{docker run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
 
 # Set up shutdown timeout
 pid = Process.fork do 
   sleep TIMEOUT.to_i
-  exec("docker rm -f #{container}")
+  exec("cleanup.rb #{container_name}")
 end
 Process.detach(pid)
 
@@ -119,4 +128,8 @@ puts <<-WELCOME
 WELCOME
 
 # Hand off user to container terminal
-exec( "docker exec -it #{container} script -qc \"bash\" /dev/null; cleanup #{container_name}" )
+<% if $container_server == 'lxd' { -%> 
+exec("lxc exec #{container_name} -- bash; cleanup")
+<% } else { -%>
+exec( "docker exec -it #{container_name} script -qc \"bash\" /dev/null; cleanup #{container_name}" )
+<% } -%>

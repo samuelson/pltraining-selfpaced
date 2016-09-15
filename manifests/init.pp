@@ -1,23 +1,21 @@
 class selfpaced (
-  $docroot = selfpaced::params::docroot
+  $docroot = selfpaced::params::docroot,
+  $container_server = 'lxd'
 ) inherits selfpaced::params {
-  include docker
-  docker::image {'maci0/systemd':}
-  docker::image { 'agent':
-    docker_dir => '/tmp/agent',
-    subscribe => File['/tmp/agent'],
-    require => Docker::Image['maci0/systemd'],
-  }
-  file { '/tmp/agent':
-    ensure => directory,
-    recurse => true,
-    source => 'puppet:///modules/selfpaced/agent',
-  }
 
+  if $container_server == 'docker' {
+    include selfpaced::docker
+    $bridge = 'docker0'
+  } else {
+    include selfpaced::lxd
+    $bridge = 'lxdbr0'
+  }
 
   file {'/usr/local/bin/selfpaced':
-    mode => '0755',
-    source => 'puppet:///modules/selfpaced/selfpaced.rb',
+    mode                 => '0755',
+    content              => epp('selfpaced/selfpaced.rb.epp',{
+      'container_server' => 'container_server'
+    }),
   }
   file {'/usr/local/share/words':
     ensure => directory
@@ -27,7 +25,9 @@ class selfpaced (
   }
   file {'/usr/local/bin/cleanup':
     mode => '0755',
-    source => 'puppet:///modules/selfpaced/cleanup.rb',
+    content              => epp('selfpaced/cleanup.rb.epp',{
+      'container_server' => 'container_server'
+    }),
   }
 
   include nginx
@@ -76,7 +76,7 @@ class selfpaced (
   include selfpaced::webpage
 
   firewall { '000 accept outbound 80, 443, and 8140 traffic on docker0':
-    iniface     => 'docker0',
+    iniface     => $bridge,
     chain       => 'FORWARD',
     proto       => 'tcp',
     dport       => ['! 80','! 443','! 8140'],

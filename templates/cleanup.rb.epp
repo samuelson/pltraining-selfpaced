@@ -72,7 +72,11 @@ end
 
 def remove_container(username)
   begin
+    <% if $container_server == 'lxd' { -%>
+    %x{lxc delete #{username} --force}
+    <% } else { -%>
     %x{docker rm -f #{username}}
+    <% } -%>
   rescue => e
     raise "Error removing container #{username}: #{e.message}"
   end

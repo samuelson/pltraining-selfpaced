@@ -12,7 +12,8 @@
     {"name":"puppetlabs/firewall", "version_requirement":">=1.8.0"},
     {"name":"garethr/docker", "version_requirement":">=5.1.0"},
     {"name":"binford2k/abalone"},
-    {"name":"jfryman/nginx", "version_requirement":">=0.3.0"}
+    {"name":"jfryman/nginx", "version_requirement":">=0.3.0"},
+    {"name":"puppetlabs/apt"}
   ],
   "operatingsystem_support": [
     {
