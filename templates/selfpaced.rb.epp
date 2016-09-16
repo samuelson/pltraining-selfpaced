@@ -17,10 +17,10 @@ CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
 CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
-USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppet.com'
+USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppetlabs.vm'
 PUPPETCODE   =  OPTIONS['PUPPETCODE'] || '/root/puppetcode'
 
-MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || `hostname -f`.strip
+MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || USERSUFFIX
 
 DOCKER_GROUP    = OPTIONS['DOCKER_GROUP'] || 'docker'
 DOCKER_IP       = OPTIONS['DOCKER_IP'] || `facter ipaddress_docker0`.strip
@@ -84,19 +84,32 @@ puts "-------------------------------------------"
 
 
 # Run container
-<% if $container_server == 'lxd' { -%> 
+<% if $container_server == 'lxd' { -%>
+puts "Provisioning container #{container_name}.#{USERSUFFIX}"
 %x{lxc launch images:centos/7/amd64 #{container_name}}
-%x{ln -s  var/lib/lxd/containers/#{container_name}/rootfs/#{PUPPETCODE} #{ENVIRONMENTS}/#{environment_name}}
-# Create environment after lxc container
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
+%x{lxc file push /var/lib/lxd/files/bashrc #{container_name}/root/.bashrc}
+puts "Waiting for container to boot"
+while ! system("lxc exec #{container_name} -- bash -c '[ -e /dev/initctl ]'") do
+  printf "."
+  sleep 1
+end
+%x{lxc exec #{container_name} -- init 3}
+default_gw = %x{lxc exec #{container_name} -- ip route show default 0.0.0.0/0}.split(' ')[2]
+%x{lxc exec #{container_name} -- bash -c "echo #{default_gw} #{USERSUFFIX} >> /etc/hosts"}
+puts "Downloading and installing puppet agent"
+puts %x{lxc exec #{container_name} -- bash -c 'curl -k https://#{USERSUFFIX}:8140/packages/current/install.bash | bash 2>/dev/null'}
+puts "Running puppet to configure container"
+while system("lxc exec #{container_name} -- bash -c '[ -e /opt/puppetlabs/puppet/cache/state/agent_catalog_run.lock ]'") do
+  printf "."
+  sleep 1
+end
 <% } else { -%>
 # Create environment before docker container
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
 %x{docker run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
 <% } -%>
 
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
+FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
 
 # Create node group
 classify(environment_name, container_name)
@@ -108,11 +121,16 @@ File.open("#{ENVIRONMENTS}/#{environment_name}/manifests/site.pp", 'w') { |file|
   file.write "}\n"
 }
 
+<% if $container_server == 'lxd' { -%>
+%x{lxc exec #{container_name} -- puppet agent -t}
+<% } else { -%>
+%x{docker exec -it #{container_name} puppet agent -t}
+<% } -%>
 
 # Set up shutdown timeout
-pid = Process.fork do 
+pid = Process.fork do
   sleep TIMEOUT.to_i
-  exec("cleanup.rb #{container_name}")
+  exec("cleanup #{container_name}")
 end
 Process.detach(pid)
 
@@ -128,8 +146,8 @@ puts <<-WELCOME
 WELCOME
 
 # Hand off user to container terminal
-<% if $container_server == 'lxd' { -%> 
-exec("lxc exec #{container_name} -- bash; cleanup")
+<% if $container_server == 'lxd' { -%>
+exec("lxc exec #{container_name} -- bash; cleanup #{container_name}")
 <% } else { -%>
 exec( "docker exec -it #{container_name} script -qc \"bash\" /dev/null; cleanup #{container_name}" )
 <% } -%>

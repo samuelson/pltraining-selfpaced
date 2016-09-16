@@ -31,6 +31,11 @@ TIMEOUT = OPTIONS['TIMEOUT'] || "300"
 
 CONTAINER_NAME = ARGV[0]
 
+if ! CONTAINER_NAME then
+  throw "Container name is required"
+  exit 1
+end
+
 def remove_node_group(username)
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
   certname = "#{username}.#{USERSUFFIX}"

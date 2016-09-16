@@ -1,0 +1,21 @@
+# .bashrc
+
+# User specific aliases and functions
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+  . /etc/bashrc
+fi
+
+# Look for master hosts entry
+if ! grep -q master /etc/hosts
+then
+  DEFAULT_GW=$(ip route show default 0.0.0.0/0 | cut -d' ' -f3)
+  echo "$DEFAULT_GW master.puppetlabs.vm" >> /etc/hosts
+fi
+
+

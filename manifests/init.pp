@@ -14,7 +14,7 @@ class selfpaced (
   file {'/usr/local/bin/selfpaced':
     mode                 => '0755',
     content              => epp('selfpaced/selfpaced.rb.epp',{
-      'container_server' => 'container_server'
+      'container_server' => $container_server,
     }),
   }
   file {'/usr/local/share/words':
@@ -26,7 +26,7 @@ class selfpaced (
   file {'/usr/local/bin/cleanup':
     mode => '0755',
     content              => epp('selfpaced/cleanup.rb.epp',{
-      'container_server' => 'container_server'
+      'container_server' => $container_server,
     }),
   }
 
