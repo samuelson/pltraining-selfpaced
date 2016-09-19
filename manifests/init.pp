@@ -1,5 +1,5 @@
 class selfpaced (
-  $docroot = selfpaced::params::docroot,
+  $docroot = $selfpaced::params::docroot,
   $container_server = 'lxd'
 ) inherits selfpaced::params {
 

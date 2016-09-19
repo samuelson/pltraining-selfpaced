@@ -3,6 +3,7 @@
 require 'json'
 require 'puppetclassify'
 require 'fileutils'
+require 'securerandom'
 
 OPTIONS = YAML.load_file('/etc/selfpaced.yaml') rescue {}
 
@@ -17,7 +18,7 @@ CONFDIR      =  OPTIONS['CONFDIR'] || '/etc/puppetlabs/puppet'
 CODEDIR      =  OPTIONS['CODEDIR'] || '/etc/puppetlabs/code'
 ENVIRONMENTS = "#{CODEDIR}/environments"
 
-USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppetlabs.vm'
+USERSUFFIX   =  OPTIONS['USERSUFFIX'] || 'try.puppet.com'
 PUPPETCODE   =  OPTIONS['PUPPETCODE'] || '/root/puppetcode'
 
 MASTER_HOSTNAME = OPTIONS['PUPPETMASTER'] || USERSUFFIX
@@ -33,7 +34,7 @@ AUTH_INFO = OPTIONS['AUTH_INFO'] || {
 
 CLASSIFIER_URL = OPTIONS['CLASSIFIER_URL'] || "http://#{MASTER_HOSTNAME}:4433/classifier-api"
 
-TIMEOUT = OPTIONS['TIMEOUT'] || "300"
+TIMEOUT = OPTIONS['TIMEOUT'] || "1800"
 
 def classify(environment, hostname, groups=[''])
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
@@ -80,18 +81,30 @@ end
 
 # Print a little explaination of what's happening
 puts "Setting up self paced eLearning environment"
+puts "Setup usually takes about 30 seconds"
 puts "-------------------------------------------"
 
 
 # Run container
 <% if $container_server == 'lxd' { -%>
 puts "Provisioning container #{container_name}.#{USERSUFFIX}"
-%x{lxc launch images:centos/7/amd64 #{container_name} 1>/dev/null 2>/dev/null}
+%x{lxc init agent #{container_name} 1>/dev/null 2>/dev/null}
+lxc_uid = %x{ls -l /var/lib/lxd/containers/#{container_name}/rootfs | tail -1 | cut -d' ' -f3}.chomp
+puts "Creating environment dir"
+%x{mkdir /etc/puppetlabs/code/environments/#{environment_name}}
+%x{mkdir /var/lib/lxd/containers/#{container_name}/rootfs/root/puppetcode}
+%x{chown -R #{lxc_uid}:#{lxc_uid} /etc/puppetlabs/code/environments/#{environment_name}}
+# Mount environment to /root/puppetcode
+%x{mount -o bind /var/lib/lxd/containers/#{container_name}/rootfs/root/puppetcode /etc/puppetlabs/code/environments/#{environment_name}}
+%x{lxc start #{container_name} 1>/dev/null 2>/dev/null}
+password = SecureRandom.hex
+%x{lxc exec #{container_name} -- bash -c "echo 'root:#{password}'|chpasswd"}
 puts "Waiting for container to boot"
 while ! system("lxc exec #{container_name} -- bash -c '[ -e /dev/initctl ]'") do
   printf "."
   sleep 1
 end
+puts
 %x{lxc exec #{container_name} -- init 3}
 default_gw = ''
 while ! (/\A(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\Z/ =~ default_gw) do
@@ -99,14 +112,8 @@ while ! (/\A(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\Z/ =~ default_gw) do
   printf "."
   sleep 1
 end
+puts
 %x{lxc exec #{container_name} -- bash -c "echo #{default_gw} #{USERSUFFIX} >> /etc/hosts"}
-puts "Downloading and installing puppet agent"
-puts %x{lxc exec #{container_name} -- bash -c 'curl -k https://#{USERSUFFIX}:8140/packages/current/install.bash | bash 2>/dev/null'}
-puts "Running puppet to configure container"
-while system("lxc exec #{container_name} -- bash -c '[ -e /opt/puppetlabs/puppet/cache/state/agent_catalog_run.lock ]'") do
-  printf "."
-  sleep 1
-end
 <% } else { -%>
 # Create environment before docker container
 %x{docker run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} sh -c "/usr/lib/systemd/systemd"}.chomp
@@ -126,7 +133,13 @@ File.open("#{ENVIRONMENTS}/#{environment_name}/manifests/site.pp", 'w') { |file|
 }
 
 <% if $container_server == 'lxd' { -%>
-%x{lxc exec #{container_name} -- puppet agent -t}
+puts "Running puppet to configure container"
+%x{lxc exec #{container_name} -- bash -c "source .bashrc; puppet agent -t"}
+while system("lxc exec #{container_name} -- bash -c '[ -e /opt/puppetlabs/puppet/cache/state/agent_catalog_run.lock ]'") do
+  printf "."
+  sleep 1
+end
+puts
 <% } else { -%>
 %x{docker exec -it #{container_name} puppet agent -t}
 <% } -%>
@@ -142,7 +155,7 @@ puts <<-WELCOME
 ------------------------------------------------------------
 
        Welcome to the Puppetlabs eLearning environment
-           Your session will expire in 5 minutes
+           Your session will expire in 30 minutes
 
               Type `puppet agent -t` to begin
 
