@@ -88,7 +88,7 @@ puts "-------------------------------------------"
 # Run container
 <% if $container_server == 'lxd' { -%>
 puts "Provisioning container #{container_name}.#{USERSUFFIX}"
-%x{lxc init agent #{container_name} 1>/dev/null 2>/dev/null}
+%x{lxc init agent #{container_name} --ephemeral 1>/dev/null 2>/dev/null}
 lxc_uid = %x{ls -l /var/lib/lxd/containers/#{container_name}/rootfs | tail -1 | cut -d' ' -f3}.chomp
 puts "Creating environment dir"
 %x{mkdir /etc/puppetlabs/code/environments/#{environment_name}}
