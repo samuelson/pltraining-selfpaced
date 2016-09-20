@@ -95,6 +95,7 @@ puts "Creating environment dir"
 %x{mkdir /var/lib/lxd/containers/#{container_name}/rootfs/root/puppetcode}
 # Mount environment to /root/puppetcode
 %x{mount -o bind /var/lib/lxd/containers/#{container_name}/rootfs/root/puppetcode /etc/puppetlabs/code/environments/#{environment_name}}
+%x{mount -o bind /var/lib/lxd/containers/#{container_name}/rootfs/root/puppetcode /var/lib/lxd/containers/#{container_name}/rootfs/etc/puppetlabs/code/environments/production}
 %x{lxc start #{container_name} 1>/dev/null 2>/dev/null}
 password = SecureRandom.hex
 %x{lxc exec #{container_name} -- bash -c "echo 'root:#{password}'|chpasswd"}

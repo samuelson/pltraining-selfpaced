@@ -66,6 +66,7 @@ def remove_environment(username)
     if File.exist?("#{environment_path}") then
       <% if $container_server == 'lxd' { -%>
       %x{umount #{environment_path}}
+      %x{umount /var/lib/lxd/containers/#{username}/rootfs/etc/puppetlabs/code/environments/production}
       <% } -%>
       %x{rm -rf #{environment_path}}
     else
