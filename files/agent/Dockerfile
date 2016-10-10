@@ -1,6 +1,6 @@
 # A container that acts like a VM for learning puppet
 # This image is for training purposes and is not intended for production environments.
-FROM maci0/systemd
+FROM centos:7
 MAINTAINER Josh Samuelson <js@puppetlabs.com>
 ENV HOME /root/
 ENV TERM xterm
@@ -9,3 +9,4 @@ RUN yum -y install  tar dmidecode which logrotate cyrus-sasl libxslt cronie pciu
 RUN gem install multipart-post -v 1.2.0
 RUN rpm -Uvh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm
 RUN yum -y install puppet-agent
+CMD ["/sbin/init"]
