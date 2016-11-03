@@ -1,12 +1,14 @@
 class selfpaced (
   $docroot = selfpaced::params::docroot
 ) inherits selfpaced::params {
-  include docker
-  docker::image {'maci0/systemd':}
+  class { 'docker':
+    extra_parameters => '--default-ulimit nofile=1000000:1000000',
+  }
+  docker::image {'centos:7':}
   docker::image { 'agent':
     docker_dir => '/tmp/agent',
     subscribe => File['/tmp/agent'],
-    require => Docker::Image['maci0/systemd'],
+    require => Docker::Image['centos:7'],
   }
   file { '/tmp/agent':
     ensure => directory,

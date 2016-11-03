@@ -33,7 +33,7 @@ AUTH_INFO = OPTIONS['AUTH_INFO'] || {
 
 CLASSIFIER_URL = OPTIONS['CLASSIFIER_URL'] || "http://#{MASTER_HOSTNAME}:4433/classifier-api"
 
-TIMEOUT = OPTIONS['TIMEOUT'] || "300"
+TIMEOUT = OPTIONS['TIMEOUT'] || "900"
 
 def classify(environment, hostname, groups=[''])
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
@@ -103,17 +103,23 @@ container = %x{docker run --security-opt seccomp=unconfined --stop-signal=SIGRTM
 # Set up shutdown timeout
 pid = Process.fork do 
   sleep TIMEOUT.to_i
-  exec("docker rm -f #{container}")
+  exec("cleanup #{container}")
 end
 Process.detach(pid)
+
+puts "Running puppet to configure node"
+IO.popen("docker exec -it #{container} puppet agent -t").each_with_index do |line,index|
+  # Show some output while puppet is running so that it doesn't look like it's crashed
+  if index % 20 == 0 then
+    printf "."
+  end
+end
 
 puts <<-WELCOME
 ------------------------------------------------------------
 
        Welcome to the Puppetlabs eLearning environment
-           Your session will expire in 5 minutes
-
-              Type `puppet agent -t` to begin
+           Your session will expire in 15 minutes
 
 ------------------------------------------------------------
 WELCOME
