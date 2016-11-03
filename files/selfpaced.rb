@@ -98,17 +98,18 @@ classify(environment_name, container_name)
 
 
 # Run container
-container = %x{docker run --security-opt seccomp=unconfined --stop-signal=SIGRTMIN+3 --tmpfs /tmp --tmpfs /run --security-opt seccomp=unconfied --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} /sbin/init}.chomp
+container = %x{docker run --security-opt seccomp=unconfined --stop-signal=SIGRTMIN+3 --tmpfs /tmp --tmpfs /run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} /sbin/init}.chomp
 
 # Set up shutdown timeout
 pid = Process.fork do 
   sleep TIMEOUT.to_i
-  exec("docker rm -f #{container}")
+  exec("cleanup #{container}")
 end
 Process.detach(pid)
 
 puts "Running puppet to configure node"
 IO.popen("docker exec -it #{container} puppet agent -t").each_with_index do |line,index|
+  # Show some output while puppet is running so that it doesn't look like it's crashed
   if index % 20 == 0 then
     printf "."
   end
