@@ -1,26 +1,20 @@
-//Wait for page to load before we use jQuery
-document.addEventListener('DOMContentLoaded', function(){ 
+$.when(
+  $.getScript( "https://cdnjs.cloudflare.com/ajax/libs/jquery-countdown/2.0.2/jquery.plugin.min.js"),
+  $.getScript( "https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.3/js.cookie.min.js" ),
+  $.getScript( "https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.7/uuid.min.js" ),
+  $.Deferred(function( deferred ){
+    $( deferred.resolve);
+  })
+).done(function(){
+  var course_name = $(".navigation-learning-name").text().replace(/\s/g, '-');
 
-$(document).ready(function(){
-  
-  // Clean up some default styling
-  $('#banner').css({"visibility":"hidden", "height":"0"});
-  $('#user-content > .content').removeClass("container");
-  $('#user-content > .content').addClass("container-fluid");
-    
-  $('#video > iframe').width($('#instructions').width());
-  $('#video > iframe').height(($('#instructions').width() * 9) / 16);
+  if (Cookies.get(course_name + "-uuid")) {
+    var student_uuid = Cookies.get(course_name + "-uuid")
+  } else {
+    var student_uuid = uuid();
+    Cookies.set(course_name + "-uuid", student_uuid);
+  }
 
-  $( window ).resize(function () {
-    
-    var visibleHeight = $(window).height() - $('#content').offset()['top'] - $('#pathway-footer').height() + 10;
-    $('#instructions').height(visibleHeight);
-    $('#right').height(visibleHeight);
-    $('#video > iframe').width($('#instructions').width());
-    $('#video > iframe').height(($('#instructions').width() * 9) / 16);
-
-  });
-
+  var url = $("#try").attr( "src" );
+  $("#try").attr( "src", url + "&uuid=" + student_uuid );
 });
-
-}, false);  

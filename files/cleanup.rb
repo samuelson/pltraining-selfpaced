@@ -2,6 +2,7 @@
 # This script runs after the container to clean up the puppet environment
 require 'json'
 require 'puppetclassify'
+require 'date'
 OPTIONS = YAML.load_file('/etc/selfpaced.yaml') rescue {}
 PUPPET    =  OPTIONS['PUPPET'] || '/opt/puppetlabs/bin/puppet'
 
@@ -27,9 +28,7 @@ AUTH_INFO = OPTIONS['AUTH_INFO'] || {
 
 CLASSIFIER_URL = OPTIONS['CLASSIFIER_URL'] || "http://#{MASTER_HOSTNAME}:4433/classifier-api"
 
-TIMEOUT = OPTIONS['TIMEOUT'] || "300"
-
-CONTAINER_NAME = ARGV[0]
+TIMEOUT = OPTIONS['TIMEOUT'] || "1000"
 
 def remove_node_group(username)
   puppetclassify = PuppetClassify.new(CLASSIFIER_URL, AUTH_INFO)
@@ -39,7 +38,7 @@ def remove_node_group(username)
     group_id = puppetclassify.groups.get_group_id(certname)
     puppetclassify.groups.delete_group(group_id)
   rescue => e
-    raise "Error removing node group #{certname}: #{e.message}"
+    puts "Error removing node group #{certname}: #{e.message}"
   end
 
   "Node group #{certname} removed"
@@ -48,8 +47,9 @@ end
 def remove_certificate(username)
   begin
     %x{puppet cert clean #{username}.#{USERSUFFIX}}
+    %x{puppet node purge #{username}.#{USERSUFFIX}}
   rescue => e
-    raise "Error cleaning certificate #{username}.#{USERSUFFIX}: #{e.message}"
+    puts "Error cleaning certificate #{username}.#{USERSUFFIX}: #{e.message}"
   end
 
   "Certificate #{username}.#{USERSUFFIX} removed"
@@ -61,10 +61,10 @@ def remove_environment(username)
     if File.exist?("#{environment_path}") then
       %x{rm -rf #{environment_path}}
     else
-      raise "Environment not found"
+      puts "Environment not found"
     end
   rescue => e
-    raise "Error removing environment #{username}: #{e.message}"
+    puts "Error removing environment #{username}: #{e.message}"
   end
 
   "Environment #{username} removed"
@@ -74,41 +74,28 @@ def remove_container(username)
   begin
     %x{docker rm -f #{username}}
   rescue => e
-    raise "Error removing container #{username}: #{e.message}"
+    puts "Error removing container #{username}: #{e.message}"
   end
 
   "Container #{username} removed"
 end
 
-# Notify user of shutdown
+containers = %x{docker ps -q}
 
-puts
-puts
-puts
-puts "----------------------------------------"
-puts "Cleaning up #{CONTAINER_NAME}.#{USERSUFFIX}"
+containers.each_line do |container|
+  container_info = JSON.parse(%x{docker inspect #{container}})[0]
+  hostname = container_info['Config']['Hostname'].split('.')[0]
+  starttime = DateTime.parse(container_info['State']['StartedAt'])
+  stoptime = starttime + Rational(TIMEOUT.to_i, 86400)
 
-# Clean up environment
-
-puts
-puts "Cleaning up code directory"
-remove_environment(CONTAINER_NAME)
-
-# Remove certificate
-puts
-puts "Removing Node Certificate"
-remove_certificate(CONTAINER_NAME)
-
-# Delete node group
-puts
-puts "Removing Node Group"
-remove_node_group(CONTAINER_NAME)
-
-# Delete container
-puts
-puts "Removing container"
-remove_container(CONTAINER_NAME)
-
-# Notify User
-
-puts "Please reload the page to start a new session"
+  if DateTime.now > stoptime
+    begin
+      remove_environment(hostname)
+      remove_certificate(hostname)
+      remove_node_group(hostname)
+      remove_container(container_info['Id'])
+    rescue => e
+      puts e
+    end
+  end
+end
