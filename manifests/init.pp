@@ -1,5 +1,5 @@
 class selfpaced (
-  $docroot = selfpaced::params::docroot
+  $docroot = $selfpaced::params::docroot
 ) inherits selfpaced::params {
   class { 'docker':
     extra_parameters => '--default-ulimit nofile=1000000:1000000',
@@ -73,7 +73,7 @@ class selfpaced (
     port    => '3000',
     command => 'selfpaced',
     method  => 'command',
-    params  => ['course'],
+    params  => ['course', 'uuid'],
   }
   include selfpaced::webpage
 
@@ -83,5 +83,13 @@ class selfpaced (
     proto       => 'tcp',
     dport       => ['! 80','! 443','! 8140'],
     action      => 'reject',
+  }
+
+  cron { "Cleanup containers every 30 minutes":
+    ensure  => present,
+    command => 'cleanup',
+    user    => 'root',
+    hour    => '*',
+    minute  => '*/30',
   }
 }

@@ -3,6 +3,7 @@
 require 'json'
 require 'puppetclassify'
 require 'fileutils'
+require 'optparse'
 
 OPTIONS = YAML.load_file('/etc/selfpaced.yaml') rescue {}
 
@@ -57,72 +58,71 @@ def classify(environment, hostname, groups=[''])
 
   "Created node group #{certname} assigned to environment #{environment}"
 end
+def create_environment(hostname, course_name)
 
-words = File.readlines("/usr/local/share/words/places.txt").each { |l| l.chomp! }
-container_name = words[rand(words.length - 1)] + "-" + words[rand(words.length - 1)]
-environment_name = container_name.gsub('-','_')
+  environment = hostname.gsub('-','_')
 
-# Manually parse course name until we add more robust argument parsing
-if /^--course/.match(ARGV[0])
-then
-  course_name = ARGV[1]
-else
-  course_name = "default"
+  # Create environment
+  FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment}/modules"
+  FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment}/manifests"
+
+  # Create site manifest with include course_selector::course::${course_name}
+  File.open("#{ENVIRONMENTS}/#{environment}/manifests/site.pp", 'w') { |file|
+    file.write "node default {\n"
+    file.write "  include course_selector::course::#{course_name}\n"
+    file.write "}\n"
+  }
+
+  return environment
 end
 
-case course_name
+options = {}
+OptionParser.new do |opt|
+ opt.on('--course COURSENAME') { |o| options[:course_name] = o }
+ opt.on('--uuid CONTAINER') { |o| options[:uuid] = o }
+end.parse!
+
+case options[:course_name]
 when "autoloading","classes","cli_intro","code","facter_intro","hiera","hiera_intro","infrastructure","inheritance","module","parser","puppet_lint","relationships","resources","smoke_test","testing","troubleshooting","unit_test","validating","get_hiera1","get_hiera2","get_hiera3","get_hiera4","get_hiera5"
-  course = course_name
+  course = options[:course_name]
 else
   course = "default"
 end
 
-# Create environment
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/modules"
-FileUtils.mkdir_p "#{ENVIRONMENTS}/#{environment_name}/manifests"
+words = File.readlines("/usr/local/share/words/places.txt").each { |l| l.chomp! }
+container_hostname = words[rand(words.length - 1)] + "-" + words[rand(words.length - 1)]
+uuid = options[:uuid] || container_hostname
 
-# Create site.pp with include course_selector::course::${course}
-File.open("#{ENVIRONMENTS}/#{environment_name}/manifests/site.pp", 'w') { |file|
-  file.write "node default {\n"
-  file.write "  include course_selector::course::#{course}\n"
-  file.write "}\n"
-}
+if %x{docker ps} =~ / #{uuid}$/
+  container_info = JSON.parse(%x{docker inspect #{options[:uuid]}})[0]
+  container_hostname = container_info['Config']['Hostname'].split('.')[0]
+  container = container_info['Id']
+  environment_name = create_environment(container_hostname,course)
+else
 
-# Print a little explaination of what's happening
-puts "Setting up self paced eLearning environment"
-puts "-------------------------------------------"
+  environment_name = create_environment(container_hostname, course)
 
-
-# Create node group
-classify(environment_name, container_name)
+  # Create node group
+  classify(environment_name, container_hostname)
 
 
-# Run container
-container = %x{docker run --security-opt seccomp=unconfined --stop-signal=SIGRTMIN+3 --tmpfs /tmp --tmpfs /run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_name}.#{USERSUFFIX} --name #{container_name} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} /sbin/init}.chomp
+  # Run a new container container
+  container = %x{docker run --security-opt seccomp=unconfined --stop-signal=SIGRTMIN+3 --tmpfs /tmp --tmpfs /run --volume #{ENVIRONMENTS}/#{environment_name}:#{PUPPETCODE} --volume /sys/fs/cgroup:/sys/fs/cgroup:ro --hostname #{container_hostname}.#{USERSUFFIX} --name #{uuid} --add-host=puppet:#{DOCKER_IP} --expose=80 -Ptd #{IMAGE_NAME} /sbin/init}.chomp
 
-# Set up shutdown timeout
-pid = Process.fork do 
-  sleep TIMEOUT.to_i
-  exec("cleanup #{container}")
-end
-Process.detach(pid)
+  puts <<-WELCOME
+  ------------------------------------------------------------
 
-puts "Running puppet to configure node"
-IO.popen("docker exec -it #{container} puppet agent -t").each_with_index do |line,index|
-  # Show some output while puppet is running so that it doesn't look like it's crashed
-  if index % 20 == 0 then
-    printf "."
-  end
+          Welcome to the Puppet eLearning environment
+             Your session will expire in 15 minutes
+
+                Type `puppet agent -t` to begin
+
+  ------------------------------------------------------------
+  WELCOME
+
 end
 
-puts <<-WELCOME
-------------------------------------------------------------
 
-       Welcome to the Puppetlabs eLearning environment
-           Your session will expire in 15 minutes
-
-------------------------------------------------------------
-WELCOME
 
 # Hand off user to container terminal
-exec( "docker exec -it #{container} script -qc \"bash\" /dev/null; cleanup #{container_name}" )
+exec( "docker exec -it #{container} script -qc \"bash\" /dev/null" )

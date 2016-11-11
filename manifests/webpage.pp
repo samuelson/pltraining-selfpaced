@@ -8,12 +8,10 @@ class selfpaced::webpage (
   file {"${docroot}/index.html":
     ensure  => file,
     source  => 'puppet:///modules/selfpaced/index.html',
-    require => File[$docroot], 
   }
-  file {"${docroot}/docs.html":
-    ensure => file,
-    source => 'puppet:///modules/selfpaced/docs.html',
-    require => File[$docroot], 
+  file {"${docroot}/js":
+    ensure  => directory,
+    recurse => true,
+    source  => 'puppet:///modules/selfpaced/js',
   }
-
 }
